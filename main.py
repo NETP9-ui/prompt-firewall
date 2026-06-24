@@ -229,35 +229,38 @@ import re as _re
 
 def _decode_obfuscation(text: str) -> str:
     """Attempt to decode common obfuscation techniques."""
-    decoded_versions = [text]
+    original = text
+    lower = text.lower()
+    decoded_versions = [lower]
 
-    # Remove dashes/dots/spaces between characters (I-G-N-O-R-E -> IGNORE)
-    decoded_versions.append(_re.sub(r'(?<=\w)[\-\.\s](?=\w)', '', text))
+    # Remove dashes between single characters (I-G-N-O-R-E -> IGNORE)
+    # Only remove dash when surrounded by single letters (not whole words)
+    dash_removed = _re.sub(r'\b([A-Za-z])-(?=[A-Za-z]\b)', r'\1', lower)
+    decoded_versions.append(dash_removed)
 
-    # Try Base64 decode
+    # Try Base64 decode on ORIGINAL case (Base64 is case-sensitive)
     try:
-        # Find base64-like strings (min 16 chars)
-        b64_matches = _re.findall(r'[A-Za-z0-9+/]{16,}={0,2}', text)
+        b64_matches = _re.findall(r'[A-Za-z0-9+/]{16,}={0,2}', original)
         for match in b64_matches:
             try:
-                decoded = base64.b64decode(match).decode('utf-8', errors='ignore')
+                decoded = base64.b64decode(match).decode('utf-8', errors='ignore').lower()
                 if decoded.strip():
-                    decoded_versions.append(decoded.lower())
+                    decoded_versions.append(decoded.strip())
             except Exception:
                 pass
     except Exception:
         pass
 
-    # Hex decode (%XX or \xXX patterns)
+    # Hex decode (%XX patterns)
     try:
-        hex_decoded = _re.sub(r'%([0-9a-fA-F]{2})', lambda m: chr(int(m.group(1), 16)), text)
+        hex_decoded = _re.sub(r'%([0-9a-fA-F]{2})', lambda m: chr(int(m.group(1), 16)), lower)
         decoded_versions.append(hex_decoded)
     except Exception:
         pass
 
     # Leet speak normalization
-    leet_map = str.maketrans('013456789@$', 'oieasgbpga s')
-    decoded_versions.append(text.translate(leet_map))
+    leet_map = str.maketrans('013456789@$', 'oieasgbpgas')
+    decoded_versions.append(lower.translate(leet_map))
 
     return '\n'.join(decoded_versions)
 
@@ -271,11 +274,12 @@ def analyze_prompt(message: str, max_length: int = MAX_LENGTH) -> tuple[str, str
         return "BLOCKED", f"Message too long ({len(message)} chars). Max allowed: {max_length}."
 
     # Normalize + decode obfuscation attempts
-    normalised = _decode_obfuscation(message.lower())
+    normalised = _decode_obfuscation(message)
 
-    for phrase in BLACKLIST:
-        if phrase in normalised:
-            return "BLOCKED", f'Blacklisted phrase detected: "{phrase}"'
+    for normalised_version in normalised.split('\n'):
+        for phrase in BLACKLIST:
+            if phrase in normalised_version:
+                return "BLOCKED", f'Blacklisted phrase detected: "{phrase}"'
     return "PASSED", "No threats detected. Safe to forward to AI."
 
 # ── Email helper ───────────────────────────────────────────────────────────
