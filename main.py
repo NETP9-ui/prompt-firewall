@@ -223,12 +223,56 @@ BLACKLIST: list[str] = [
     "%2e%2e%2f",
 ]
 
-def analyze_prompt(message: str) -> tuple[str, str]:
+import base64
+import binascii
+import re as _re
+
+def _decode_obfuscation(text: str) -> str:
+    """Attempt to decode common obfuscation techniques."""
+    decoded_versions = [text]
+
+    # Remove dashes/dots/spaces between characters (I-G-N-O-R-E -> IGNORE)
+    decoded_versions.append(_re.sub(r'(?<=\w)[\-\.\s](?=\w)', '', text))
+
+    # Try Base64 decode
+    try:
+        # Find base64-like strings (min 16 chars)
+        b64_matches = _re.findall(r'[A-Za-z0-9+/]{16,}={0,2}', text)
+        for match in b64_matches:
+            try:
+                decoded = base64.b64decode(match).decode('utf-8', errors='ignore')
+                if decoded.strip():
+                    decoded_versions.append(decoded.lower())
+            except Exception:
+                pass
+    except Exception:
+        pass
+
+    # Hex decode (%XX or \xXX patterns)
+    try:
+        hex_decoded = _re.sub(r'%([0-9a-fA-F]{2})', lambda m: chr(int(m.group(1), 16)), text)
+        decoded_versions.append(hex_decoded)
+    except Exception:
+        pass
+
+    # Leet speak normalization
+    leet_map = str.maketrans('013456789@$', 'oieasgbpga s')
+    decoded_versions.append(text.translate(leet_map))
+
+    return '\n'.join(decoded_versions)
+
+
+def analyze_prompt(message: str, max_length: int = MAX_LENGTH) -> tuple[str, str]:
     if not message.strip():
         return "BLOCKED", "Empty message rejected."
-    normalised = message.lower()
-    if len(message) > MAX_LENGTH:
-        return "BLOCKED", f"Message too long ({len(message)} chars). Max: {MAX_LENGTH}."
+
+    # Check length with configurable limit
+    if len(message) > max_length:
+        return "BLOCKED", f"Message too long ({len(message)} chars). Max allowed: {max_length}."
+
+    # Normalize + decode obfuscation attempts
+    normalised = _decode_obfuscation(message.lower())
+
     for phrase in BLACKLIST:
         if phrase in normalised:
             return "BLOCKED", f'Blacklisted phrase detected: "{phrase}"'
@@ -254,7 +298,7 @@ async def send_api_key_email(email: str, api_key: str, plan: str):
       <pre style="background:#0a0f1a;border:1px solid #1e293b;border-radius:6px;padding:16px;font-size:13px;color:#86efac;overflow-x:auto;">headers={{"X-API-Key": "{api_key}"}}</pre>
       <p style="color:#94a3b8;margin-top:24px;">Your firewall endpoint:</p>
       <pre style="background:#0a0f1a;border:1px solid #1e293b;border-radius:6px;padding:16px;font-size:13px;color:#60a5fa;">https://prompt-firewall-production.up.railway.app/analyze</pre>
-      <p style="color:#475569;font-size:13px;margin-top:32px;">Questions? Reply to this email or contact info@invenova.tech</p>
+      <p style="color:#475569;font-size:13px;margin-top:32px;">Questions? Reply to this email or contact <a href="mailto:info@invenova.tech" style="color:#f59e0b;">info@invenova.tech</a></p>
     </div>
     """
 
@@ -274,6 +318,7 @@ async def send_api_key_email(email: str, api_key: str, plan: str):
 
 class PromptRequest(BaseModel):
     message: str
+    max_length: int = MAX_LENGTH  # Configurable per request (default 500)
 
 class FirewallResponse(BaseModel):
     event_id: str
@@ -288,7 +333,7 @@ class FirewallResponse(BaseModel):
 @limiter.limit("30/minute")
 def analyze(request: Request, body: PromptRequest, _key: str = Security(require_any_valid_key)):
     """Screen a prompt. Returns PASSED or BLOCKED + reason."""
-    status, reason = analyze_prompt(body.message)
+    status, reason = analyze_prompt(body.message, max_length=body.max_length)
     event = {
         "event_id":        str(uuid.uuid4())[:8],
         "timestamp":       datetime.utcnow().isoformat() + "Z",
