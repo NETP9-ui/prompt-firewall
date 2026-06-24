@@ -4,3 +4,5 @@ __pycache__/
 .env
 firewall.db
 .DS_Store
+# Local Netlify folder
+.netlify
