@@ -171,6 +171,56 @@ BLACKLIST: list[str] = [
     # Other
     "you are now dan",
     "do anything now",
+    # SQL Injection
+    "' or '1'='1",
+    "' or 1=1",
+    "'; drop table",
+    "'; select ",
+    "union select",
+    "insert into",
+    "delete from",
+    "exec(",
+    "execute(",
+    "xp_cmdshell",
+    "information_schema",
+    "sleep(",
+    "1=1--",
+    # XSS
+    "<script",
+    "javascript:",
+    "onerror=",
+    "onload=",
+    "alert(",
+    "document.cookie",
+    "window.location",
+    "eval(",
+    # Command Injection
+    "; ls",
+    "; cat ",
+    "| cat ",
+    "&& cat",
+    "/etc/passwd",
+    "/etc/shadow",
+    "wget http",
+    "curl http",
+    "nc -e",
+    "base64 -d",
+    # Log4Shell
+    "${jndi:",
+    "jndi:ldap",
+    "jndi:rmi",
+    "jndi:dns",
+    # XXE
+    "<!entity",
+    "system(",
+    "file:///",
+    # LDAP Injection
+    "*)(&",
+    "(|(mail=",
+    # Path Traversal
+    "../../../",
+    "..%2f..%2f",
+    "%2e%2e%2f",
 ]
 
 def analyze_prompt(message: str) -> tuple[str, str]:
