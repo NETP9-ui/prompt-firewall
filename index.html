@@ -786,7 +786,7 @@
     <a href="#">Docs</a>
     <a href="#">Privacy</a>
     <a href="#">Terms</a>
-    <a href="mailto:hello@promptfirewall.com">Contact</a>
+    <a href="mailto:info@invenova.tech">Contact</a>
   </div>
 </footer>
 
@@ -877,10 +877,16 @@
 <!-- Paddle.js -->
 <script src="https://cdn.paddle.com/paddle/v2/paddle.js"></script>
 <script>
-  // Paste your Paddle client-side token below (starts with live_)
-  Paddle.Initialize({
-    token: 'live_60aa28d91e3e7cec5aaa70f2585'
+  Paddle.Initialize({ 
+    token: 'live_73550533239e34375a6c260cfad'
   });
+
+  function openCheckout(priceId) {
+    Paddle.Checkout.open({
+      items: [{ priceId: priceId, quantity: 1 }]
+    });
+  }
+</script>
 
   function openCheckout(priceId) {
     Paddle.Checkout.open({
