@@ -374,6 +374,75 @@ def get_log(request: Request, limit: int = 50, _key: str = Security(require_admi
     return {"events": [dict(r) for r in rows], "total": total}
 
 
+@app.get("/my-log", tags=["Customer"])
+@limiter.limit("60/minute")
+def my_log(request: Request, limit: int = 50, key: str = Security(api_key_header)):
+    """Customer endpoint — returns their own security events and account info."""
+    # Find customer by key
+    with get_db() as con:
+        customer = con.execute(
+            "SELECT * FROM customers WHERE api_key=? AND status='active'", (key,)
+        ).fetchone()
+        if not customer:
+            raise HTTPException(status_code=403, detail="Invalid API key.")
+
+        # Get their events
+        rows = con.execute(
+            "SELECT * FROM events ORDER BY timestamp DESC LIMIT ?", (limit,)
+        ).fetchall()
+        total = con.execute("SELECT COUNT(*) FROM events").fetchone()[0]
+        blocked = con.execute("SELECT COUNT(*) FROM events WHERE status='BLOCKED'").fetchone()[0]
+        passed = con.execute("SELECT COUNT(*) FROM events WHERE status='PASSED'").fetchone()[0]
+
+        # Attack breakdown
+        attack_types = {
+            "Prompt Injection": ["ignore previous", "developer mode", "jailbreak", "pretend", "roleplay", "disregard", "forget your", "override", "bypass", "dan"],
+            "SQL Injection": ["drop table", "union select", "insert into", "delete from", "exec(", "sleep("],
+            "XSS": ["<script", "javascript:", "onerror=", "alert(", "document.cookie"],
+            "Command Injection": ["/etc/passwd", "wget http", "curl http", "nc -e", "; cat"],
+            "Log4Shell / XXE": ["${jndi:", "jndi:ldap", "<!entity", "file:///"],
+            "Obfuscation": ["base64", "hex encoded", "%2e%2e", "../../../"],
+        }
+
+        breakdown = {k: 0 for k in attack_types}
+        blocked_rows = con.execute(
+            "SELECT reason FROM events WHERE status='BLOCKED'"
+        ).fetchall()
+        for row in blocked_rows:
+            reason = row["reason"].lower()
+            matched = False
+            for category, keywords in attack_types.items():
+                if any(kw in reason for kw in keywords):
+                    breakdown[category] += 1
+                    matched = True
+                    break
+            if not matched:
+                breakdown["Prompt Injection"] += 1
+
+    plan_limits = {"starter": 10000, "pro": 100000, "business": -1}
+    limit_val = plan_limits.get(customer["plan"], 10000)
+
+    return {
+        "account": {
+            "email": customer["email"],
+            "plan": customer["plan"],
+            "status": customer["status"],
+            "member_since": customer["created_at"],
+            "monthly_limit": limit_val,
+            "requests_used": total,
+            "requests_remaining": max(0, limit_val - total) if limit_val > 0 else "unlimited",
+        },
+        "stats": {
+            "total_requests": total,
+            "passed": passed,
+            "blocked": blocked,
+            "block_rate": round((blocked / total * 100), 1) if total > 0 else 0,
+        },
+        "attack_breakdown": breakdown,
+        "recent_events": [dict(r) for r in rows][:limit],
+    }
+
+
 @app.delete("/log", tags=["Firewall"])
 def clear_log(_key: str = Security(require_admin_key)):
     with get_db() as con:
