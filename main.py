@@ -294,6 +294,42 @@ def analyze_prompt(message: str, max_length: int = MAX_LENGTH) -> tuple[str, str
 
 # ── Email helper ───────────────────────────────────────────────────────────
 
+async def send_upgrade_email(email: str, api_key: str, old_plan: str, new_plan: str):
+    """Send plan upgrade confirmation email via Resend."""
+    if not RESEND_API_KEY:
+        print(f"[EMAIL SKIPPED] Would send upgrade email to {email}")
+        return
+
+    plan_limits = {"starter": "10,000", "pro": "100,000", "business": "Unlimited"}
+    new_limit = plan_limits.get(new_plan, "Unknown")
+
+    html = f"""
+    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:32px;background:#080c14;color:#f1f5f9;border-radius:10px;">
+      <h1 style="color:#f59e0b;font-size:24px;margin-bottom:8px;">🎉 Plan Upgraded!</h1>
+      <p style="color:#94a3b8;">Your Prompt Firewall plan has been upgraded from <strong style="color:#f1f5f9;">{old_plan.title()}</strong> to <strong style="color:#f59e0b;">{new_plan.title()}</strong>.</p>
+      <div style="background:#0d1220;border:1px solid #1e293b;border-radius:8px;padding:20px;margin:24px 0;">
+        <p style="color:#475569;font-size:12px;margin-bottom:8px;font-family:monospace;letter-spacing:0.1em;">YOUR API KEY (unchanged)</p>
+        <p style="font-family:monospace;font-size:16px;color:#f59e0b;word-break:break-all;">{api_key}</p>
+      </div>
+      <p style="color:#94a3b8;">Your new monthly limit: <strong style="color:#f1f5f9;">{new_limit} requests</strong></p>
+      <p style="color:#94a3b8;margin-top:12px;">Your API key stays the same — no changes needed in your code.</p>
+      <p style="color:#475569;font-size:13px;margin-top:32px;">Questions? Contact <a href="mailto:info@invenova.tech" style="color:#f59e0b;">info@invenova.tech</a></p>
+    </div>
+    """
+
+    async with httpx.AsyncClient() as client:
+        await client.post(
+            "https://api.resend.com/emails",
+            headers={"Authorization": f"Bearer {RESEND_API_KEY}"},
+            json={
+                "from": FROM_EMAIL,
+                "to": email,
+                "subject": f"🎉 Your plan has been upgraded to {new_plan.title()}",
+                "html": html,
+            }
+        )
+
+
 async def send_api_key_email(email: str, api_key: str, plan: str):
     """Send API key to new customer via Resend."""
     if not RESEND_API_KEY:
@@ -488,7 +524,7 @@ async def paddle_webhook(request: Request):
 
     event_type = payload.get("event_type", "")
 
-    if event_type in ["subscription.activated", "transaction.completed"]:
+    if event_type in ["subscription.activated", "transaction.completed", "subscription.updated"]:
         data = payload.get("data", {})
 
         # Get customer email
@@ -498,43 +534,81 @@ async def paddle_webhook(request: Request):
             ""
         )
 
-        # Get plan name
+        # Get plan name from price name
         items = data.get("items", [])
         plan = "starter"
         if items:
             price_name = items[0].get("price", {}).get("name", "").lower()
-            if "pro" in price_name:
-                plan = "pro"
-            elif "business" in price_name:
+            if "business" in price_name:
                 plan = "business"
+            elif "pro" in price_name:
+                plan = "pro"
 
         paddle_id = data.get("id", "")
 
         if customer_email:
-            api_key = "pf_" + uuid.uuid4().hex[:24]
-            customer = {
-                "id":         str(uuid.uuid4())[:8],
-                "email":      customer_email,
-                "api_key":    api_key,
-                "plan":       plan,
-                "status":     "active",
-                "created_at": datetime.utcnow().isoformat() + "Z",
-                "paddle_id":  paddle_id,
-            }
             with get_db() as con:
-                # Check if customer already exists
                 existing = con.execute(
                     "SELECT * FROM customers WHERE email=?", (customer_email,)
                 ).fetchone()
-                if not existing:
+
+                if existing:
+                    # Customer exists — upgrade their plan
+                    old_plan = existing["plan"]
+                    if old_plan != plan:
+                        con.execute(
+                            "UPDATE customers SET plan=?, paddle_id=? WHERE email=?",
+                            (plan, paddle_id, customer_email)
+                        )
+                        # Send upgrade confirmation email
+                        await send_upgrade_email(customer_email, existing["api_key"], old_plan, plan)
+                else:
+                    # New customer — create account and send key
+                    api_key = "pf_" + uuid.uuid4().hex[:24]
+                    customer = {
+                        "id":         str(uuid.uuid4())[:8],
+                        "email":      customer_email,
+                        "api_key":    api_key,
+                        "plan":       plan,
+                        "status":     "active",
+                        "created_at": datetime.utcnow().isoformat() + "Z",
+                        "paddle_id":  paddle_id,
+                    }
                     con.execute(
                         "INSERT INTO customers VALUES (:id,:email,:api_key,:plan,:status,:created_at,:paddle_id)",
                         customer,
                     )
-            if not existing:
-                await send_api_key_email(customer_email, api_key, plan)
+                    await send_api_key_email(customer_email, api_key, plan)
+
+    # Handle cancellation
+    if event_type == "subscription.canceled":
+        data = payload.get("data", {})
+        customer_email = data.get("customer", {}).get("email", "")
+        if customer_email:
+            with get_db() as con:
+                con.execute(
+                    "UPDATE customers SET status='cancelled' WHERE email=?",
+                    (customer_email,)
+                )
 
     return {"status": "ok"}
+
+
+@app.post("/resend-key", tags=["Customer"])
+@limiter.limit("3/minute")
+async def resend_key(request: Request, email: str):
+    """Resend API key to customer email. Rate limited to prevent abuse."""
+    with get_db() as con:
+        customer = con.execute(
+            "SELECT * FROM customers WHERE email=? AND status='active'", (email.lower().strip(),)
+        ).fetchone()
+
+    if not customer:
+        # Don't reveal if email exists or not — security best practice
+        return {"message": "If that email has an active account, the key has been resent."}
+
+    await send_api_key_email(customer["email"], customer["api_key"], customer["plan"])
+    return {"message": "If that email has an active account, the key has been resent."}
 
 
 @app.get("/health", tags=["Health"])
