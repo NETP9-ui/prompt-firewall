@@ -447,8 +447,15 @@ let DASH_DATA = null;
 let LOG_FILTER = "blocked"; // default: show blocked
 
 const urlParams = new URLSearchParams(window.location.search);
-  // Try to restore session
-  if (!resetToken && restoreSession()) { loadDashboard(SESSION.email, SESSION.apiKey); }
+  // Try to restore session on page load
+  if (!resetToken) {
+    const _restored = restoreSession();
+    if (_restored && SESSION.email && SESSION.apiKey) {
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('dashboard').style.display = 'block';
+      loadDashboard(SESSION.email, SESSION.apiKey);
+    }
+  }
 const resetToken = urlParams.get("reset");
 if (resetToken) {
   document.getElementById("loginScreen").style.display = "none";
@@ -590,9 +597,10 @@ async function loadDashboard(email, apiKey) {
       headers:{"X-API-Key": keyToUse}
     });
     if (!res.ok) {
+      sessionStorage.clear();
       document.getElementById("loginScreen").style.display = "flex";
       document.getElementById("dashboard").style.display = "none";
-      document.getElementById("loginError").textContent = "Session expired. Please log in again.";
+      document.getElementById("loginError").textContent = "";
       return;
     }
     const data = await res.json();
