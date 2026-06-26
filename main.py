@@ -296,7 +296,7 @@ async def send_api_key_email(email: str, api_key: str, plan: str, label: str = "
       <a href="{BASE_URL}/dashboard.html" style="display:inline-block;margin-top:16px;background:#f59e0b;color:#000;font-weight:700;padding:10px 20px;border-radius:6px;text-decoration:none;">Open Dashboard →</a>
       <p style="color:#475569;font-size:13px;margin-top:28px;">Questions? <a href="mailto:info@invenova.tech" style="color:#f59e0b;">info@invenova.tech</a></p>
     </div>"""
-    await send_email(to, "🛡️ Your Prompt Firewall API Key", html)
+    await send_email(email, "🛡️ Your Prompt Firewall API Key", html)
 
 async def send_reset_email(email: str, token: str):
     url = f"{BASE_URL}/dashboard.html?reset={token}"
