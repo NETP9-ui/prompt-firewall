@@ -512,10 +512,7 @@ function switchTab(t) {
       btn.disabled = false; btn.textContent = "Sign In";
       return;
     }
-    sessionStorage.setItem('pf_email', SESSION.email);
-    sessionStorage.setItem('pf_key', SESSION.apiKey);
-    sessionStorage.setItem('pf_plan', SESSION.plan);
-    sessionStorage.setItem('pf_pwdSet', 'true');
+    saveSession();
     await loadDashboard(SESSION.email, SESSION.apiKey);
   } catch(e) { err.textContent = "Connection error. Please try again."; }
   finally { btn.disabled = false; btn.textContent = "Sign In"; }
@@ -539,10 +536,7 @@ async function loginKey() {
     SESSION.email = email;
     SESSION.apiKey = apiKey;
     SESSION.passwordSet = !data.first_login;
-    sessionStorage.setItem('pf_email', email);
-    sessionStorage.setItem('pf_key', apiKey);
-    sessionStorage.setItem('pf_plan', 'starter');
-    sessionStorage.setItem('pf_pwdSet', String(!data.first_login));
+    saveSession();
     await loadDashboard(email, apiKey);
   } catch(e) { err.textContent = "Connection error. Please try again."; }
   finally { btn.disabled = false; btn.textContent = "View Dashboard"; }
@@ -598,26 +592,30 @@ async function doReset() {
 }
 
 async function loadDashboard(email, apiKey) {
-  document.getElementById("loginScreen").style.display = "none";
-  document.getElementById("dashboard").style.display = "block";
+  const loginScreen = document.getElementById("loginScreen");
+  const dashboard = document.getElementById("dashboard");
+  const mainContent = document.getElementById("mainContent");
+
+  loginScreen.style.display = "none";
+  dashboard.style.display = "block";
+  mainContent.innerHTML = `<div style="padding:80px;text-align:center;color:var(--slate3);font-family:var(--mono)"><div class="spinner"></div> Loading your dashboard…</div>`;
+
   const keyToUse = apiKey || SESSION.apiKey;
   try {
     const res = await fetch(`${API}/my-log?email=${encodeURIComponent(email)}&limit=50`, {
       headers:{"X-API-Key": keyToUse}
     });
     if (!res.ok) {
-      // Try to refresh with stored credentials
-      const storedEmail = sessionStorage.getItem('pf_email');
-      const storedKey   = LS('pf_key');
-      if (storedEmail && storedKey && (storedEmail !== email || storedKey !== keyToUse)) {
-        SESSION.email  = storedEmail;
-        SESSION.apiKey = storedKey;
-        await loadDashboard(storedEmail, storedKey);
+      if (res.status === 401 || res.status === 403) {
+        clearStoredAuth();
+        loginScreen.style.display = "flex";
+        dashboard.style.display = "none";
+        mainContent.innerHTML = `<div style="padding:80px;text-align:center;color:var(--slate3);font-family:var(--mono)">Session expired. Please log in again.</div>`;
         return;
       }
-      clearStoredAuth();
-      document.getElementById("loginScreen").style.display = "flex";
-      document.getElementById("dashboard").style.display = "none";
+      loginScreen.style.display = "none";
+      dashboard.style.display = "block";
+      mainContent.innerHTML = `<div style="padding:48px;text-align:center;color:var(--slate3);font-family:var(--mono)">We could not refresh your dashboard right now. You are still signed in.</div>`;
       return;
     }
     const data = await res.json();
@@ -626,10 +624,21 @@ async function loadDashboard(email, apiKey) {
     pushCrispContext();
     SESSION.passwordSet = data.account.password_set;
     SESSION.apiKey = keyToUse;
+    saveSession();
+    loginScreen.style.display = "none";
+    dashboard.style.display = "block";
     renderDashboard(data);
   } catch(e) {
-    document.getElementById("mainContent").innerHTML =
-      `<div style="padding:48px;text-align:center;color:var(--red);font-family:var(--mono)">Connection error. Please refresh.</div>`;
+    if (SESSION.email) {
+      loginScreen.style.display = "none";
+      dashboard.style.display = "block";
+      mainContent.innerHTML = `<div style="padding:48px;text-align:center;color:var(--slate3);font-family:var(--mono)">Connection issue while loading your dashboard. You remain signed in.</div>`;
+    } else {
+      clearStoredAuth();
+      loginScreen.style.display = "flex";
+      dashboard.style.display = "none";
+      mainContent.innerHTML = `<div style="padding:48px;text-align:center;color:var(--red);font-family:var(--mono)">Connection error. Please refresh.</div>`;
+    }
   }
 }
 
@@ -770,8 +779,9 @@ function renderDashboard(data) {
             <div class="acc-row"><span class="acc-lbl">Plan</span><span class="acc-val amber">${acc.plan.charAt(0).toUpperCase()+acc.plan.slice(1)}</span></div>
             <div class="acc-row"><span class="acc-lbl">Status</span><span class="acc-val green"> Active</span></div>
             <div class="acc-row"><span class="acc-lbl">Member since</span><span class="acc-val">${new Date(acc.member_since).toLocaleDateString("en-ZA",{year:"numeric",month:"long",day:"numeric"})}</span></div>
-            <div class="acc-row"><span class="acc-lbl">Password</span><span class="acc-val ${SESSION.passwordSet?"green":"red"}">${SESSION.passwordSet?"Set ":"Not set"}</span></div>
+            <div class="acc-row" onclick="openPwdModal()" style="cursor:pointer"><span class="acc-lbl">Password</span><span class="acc-val ${SESSION.passwordSet?"green":"red"}">${SESSION.passwordSet?"Set ":"Not set"}</span></div>
             <div style="margin-top:15px;display:flex;gap:10px;flex-wrap:wrap">
+              <button onclick="openPwdModal()" style="display:inline-block;background:var(--slate2);color:#fff;font-family:var(--display);font-size:13px;font-weight:700;padding:8px 16px;border-radius:6px;border:none;cursor:pointer">${SESSION.passwordSet ? 'Change Password' : 'Set Password'}</button>
               <button onclick="document.getElementById('upgradeModal').classList.add('open')" style="display:inline-block;background:var(--amber);color:#000;font-family:var(--display);font-size:13px;font-weight:700;padding:8px 16px;border-radius:6px;border:none;cursor:pointer">Upgrade Plan →</button>
               <a href="mailto:info@invenova.tech" style="display:inline-flex;align-items:center;font-size:13px;color:var(--slate2);text-decoration:none">Support</a>
             </div>
@@ -1005,8 +1015,8 @@ document.addEventListener("keydown", e => {
 if (!resetToken) {
   const _restored = restoreSession();
   if (_restored && SESSION.email && SESSION.apiKey) {
-    document.getElementById('loginScreen').style.display = 'none';
-    document.getElementById('dashboard').style.display = 'block';
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('dashboard').style.display = 'none';
     loadDashboard(SESSION.email, SESSION.apiKey);
   }
 }
