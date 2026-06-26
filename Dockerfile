@@ -2,8 +2,7 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install build tools needed for bcrypt and psycopg2
-RUN apt-get update && apt-get install -y gcc libffi-dev libpq-dev && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y gcc libffi-dev build-essential && rm -rf /var/lib/apt/lists/*
 
 COPY requirements_railway.txt .
 RUN pip install --no-cache-dir -r requirements_railway.txt
