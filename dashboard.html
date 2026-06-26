@@ -284,8 +284,8 @@
 <!-- SET PASSWORD MODAL -->
 <div class="modal-overlay" id="setPwdModal">
   <div class="modal">
-    <div class="modal-title"> Set your password</div>
-    <p class="modal-sub">Create a password so you can log in with your email next time — no API key needed.</p>
+    <div class="modal-title" id="pwdModalTitle"> Set your password</div>
+    <p class="modal-sub" id="pwdModalSub">Create a password so you can log in with your email next time — no API key needed.</p>
     <label class="field-label">NEW PASSWORD</label>
     <input class="field" id="newPwd1" type="password" placeholder="Minimum 8 characters" />
     <label class="field-label">CONFIRM PASSWORD</label>
@@ -927,6 +927,10 @@ function openPwdModal() {
   document.getElementById("newPwd1").value = "";
   document.getElementById("newPwd2").value = "";
   document.getElementById("setPwdMsg").textContent = "";
+  const title = document.getElementById("pwdModalTitle");
+  const sub   = document.getElementById("pwdModalSub");
+  if (title) title.textContent = SESSION.passwordSet ? "Change your password" : "Set your password";
+  if (sub)   sub.textContent   = SESSION.passwordSet ? "Enter a new password for your account." : "Create a password so you can log in with your email next time.";
   document.getElementById("setPwdModal").classList.add("open");
 }
 
