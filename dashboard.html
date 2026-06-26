@@ -510,7 +510,14 @@ function switchTab(t) {
     const data = await res.json();
     if (!res.ok) { err.textContent = data.detail || "Invalid credentials."; return; }
     SESSION.email = email; SESSION.passwordSet = true;
-    SESSION.apiKey = data.api_key || SESSION.apiKey || "";
+    // Use API key from response, or fall back to stored key
+    const storedKey = sessionStorage.getItem('pf_key') || '';
+    SESSION.apiKey = data.api_key || storedKey;
+    if (!SESSION.apiKey) {
+      err.textContent = "Login successful but no API key found. Please use First Time Login tab with your API key.";
+      btn.disabled = false; btn.textContent = "Sign In";
+      return;
+    }
     saveSession();
     await loadDashboard(email, SESSION.apiKey);
   } catch(e) { err.textContent = "Connection error. Please try again."; }
