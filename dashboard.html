@@ -510,8 +510,9 @@ function switchTab(t) {
     const data = await res.json();
     if (!res.ok) { err.textContent = data.detail || "Invalid credentials."; return; }
     SESSION.email = email; SESSION.passwordSet = true;
+    SESSION.apiKey = data.api_key || SESSION.apiKey || "";
     saveSession();
-    await loadDashboard(email, null);
+    await loadDashboard(email, SESSION.apiKey);
   } catch(e) { err.textContent = "Connection error. Please try again."; }
   finally { btn.disabled = false; btn.textContent = "Sign In"; }
 }

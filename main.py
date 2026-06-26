@@ -409,7 +409,10 @@ async def login(request: Request, body: LoginRequest):
     if body.password:
         if not customer["password"]: raise HTTPException(status_code=401, detail="No password set. Use your API key to log in first.")
         if not verify_password(body.password, customer["password"]): raise HTTPException(status_code=401, detail="Invalid email or password.")
-        return {"success":True,"customer":_safe(customer),"first_login":False}
+        # Return the first active API key so dashboard can authenticate /my-log
+        key_row = db_one("SELECT api_key FROM api_keys WHERE customer_id=%s AND status='active' ORDER BY created_at LIMIT 1", (customer["id"],))
+        api_key = key_row["api_key"] if key_row else None
+        return {"success":True,"customer":_safe(customer),"first_login":False,"api_key":api_key}
     raise HTTPException(status_code=400, detail="Provide password or api_key.")
 
 @app.post("/auth/set-password", tags=["Auth"])
