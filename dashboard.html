@@ -215,7 +215,7 @@
 <!-- LOGIN SCREEN -->
 <div class="auth-screen" id="loginScreen">
   <div class="auth-card">
-    <div class="auth-logo">🛡️</div>
+    <div class="auth-logo"></div>
     <div class="auth-title">Prompt Firewall</div>
     <p class="auth-sub">Sign in to your security dashboard.</p>
     <div class="tab-row">
@@ -253,7 +253,7 @@
 <!-- FORGOT PASSWORD -->
 <div class="auth-screen" id="forgotScreen" style="display:none">
   <div class="auth-card">
-    <div class="auth-logo">📧</div>
+    <div class="auth-logo"></div>
     <div class="auth-title">Reset Password</div>
     <p class="auth-sub">Enter your email and we'll send a reset link to your inbox. The link expires in 1 hour.</p>
     <label class="field-label">EMAIL ADDRESS</label>
@@ -269,7 +269,7 @@
 <!-- RESET PASSWORD -->
 <div class="auth-screen" id="resetScreen" style="display:none">
   <div class="auth-card">
-    <div class="auth-logo">🔐</div>
+    <div class="auth-logo"></div>
     <div class="auth-title">Create New Password</div>
     <p class="auth-sub">Choose a strong password for your Prompt Firewall account.</p>
     <label class="field-label">NEW PASSWORD</label>
@@ -284,7 +284,7 @@
 <!-- SET PASSWORD MODAL -->
 <div class="modal-overlay" id="setPwdModal">
   <div class="modal">
-    <div class="modal-title">🔐 Set your password</div>
+    <div class="modal-title"> Set your password</div>
     <p class="modal-sub">Create a password so you can log in with your email next time — no API key needed.</p>
     <label class="field-label">NEW PASSWORD</label>
     <input class="field" id="newPwd1" type="password" placeholder="Minimum 8 characters" />
@@ -325,14 +325,14 @@
   <div class="modal" style="max-width:640px">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px">
       <div>
-        <div class="modal-title">📖 User Manual</div>
+        <div class="modal-title"> User Manual</div>
         <p style="font-size:13px;color:var(--slate3);margin-top:4px">Everything you need to get the most out of Prompt Firewall.</p>
       </div>
-      <button class="btn-sm" onclick="closeManual()" style="flex-shrink:0;margin-left:16px">✕ Close</button>
+      <button class="btn-sm" onclick="closeManual()" style="flex-shrink:0;margin-left:16px"> Close</button>
     </div>
 
     <div class="manual-section">
-      <h3>🚀 Getting Started (All Plans)</h3>
+      <h3> Getting Started (All Plans)</h3>
       <p>Welcome! Here is how to protect your AI chatbot in 3 steps.</p>
       <h4>Step 1 — Find your API key</h4>
       <p>When you subscribed, we sent an email to your inbox with a key that looks like <code style="font-family:var(--mono);font-size:12px;color:var(--amber)">pf_abc...xyz</code>. Keep this safe — it is your access token.</p>
@@ -403,7 +403,7 @@ else:
     </div>
 
     <div class="manual-section">
-      <h3>❓ Common Questions</h3>
+      <h3> Common Questions</h3>
       <h4>What happens if I go over my request limit?</h4>
       <p>Requests over the limit return a 429 error. We email you before you hit the limit so you have time to upgrade.</p>
       <h4>My key stopped working — what happened?</h4>
@@ -424,11 +424,11 @@ else:
 <div id="logo-data" style="display:none" data-src="data:image/jpeg;base64,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"></div>
 <div class="dashboard" id="dashboard">
   <nav class="nav">
-    <a class="nav-brand" href="index.html">🛡️ Prompt <span>Firewall</span></a>
+    <a class="nav-brand" href="index.html"> Prompt <span>Firewall</span></a>
     <div class="nav-right">
       <span class="badge" id="navPlan">STARTER</span>
       <span class="badge shadow" id="shadowBadge" style="display:none">SHADOW MODE</span>
-      <button class="btn-sm amber" onclick="openManual()">📖 Manual</button>
+      <button class="btn-sm amber" onclick="openManual()"> Manual</button>
       <span class="nav-email" id="navEmail"></span>
       <button class="btn-sm" onclick="logout()">Sign out</button>
     </div>
@@ -447,6 +447,8 @@ let DASH_DATA = null;
 let LOG_FILTER = "blocked"; // default: show blocked
 
 const urlParams = new URLSearchParams(window.location.search);
+  // Try to restore session
+  if (!resetToken && restoreSession()) { loadDashboard(SESSION.email, SESSION.apiKey); }
 const resetToken = urlParams.get("reset");
 if (resetToken) {
   document.getElementById("loginScreen").style.display = "none";
@@ -461,7 +463,31 @@ function switchTab(t) {
   document.getElementById("loginError").textContent = "";
 }
 
-async function loginPwd() {
+
+  // Persist session across page interactions
+  function saveSession() {
+    if (SESSION.email) {
+      sessionStorage.setItem('pf_email', SESSION.email);
+      sessionStorage.setItem('pf_key', SESSION.apiKey);
+      sessionStorage.setItem('pf_plan', SESSION.plan);
+      sessionStorage.setItem('pf_pwdSet', SESSION.passwordSet);
+    }
+  }
+
+  function restoreSession() {
+    const email = sessionStorage.getItem('pf_email');
+    const key   = sessionStorage.getItem('pf_key');
+    if (email && key) {
+      SESSION.email       = email;
+      SESSION.apiKey      = key;
+      SESSION.plan        = sessionStorage.getItem('pf_plan') || 'starter';
+      SESSION.passwordSet = sessionStorage.getItem('pf_pwdSet') === 'true';
+      return true;
+    }
+    return false;
+  }
+
+  async function loginPwd() {
   const email = document.getElementById("pwdEmail").value.trim();
   const password = document.getElementById("pwdPassword").value;
   const btn = document.getElementById("btnPwd");
@@ -477,6 +503,7 @@ async function loginPwd() {
     const data = await res.json();
     if (!res.ok) { err.textContent = data.detail || "Invalid credentials."; return; }
     SESSION.email = email; SESSION.passwordSet = true;
+    saveSession();
     await loadDashboard(email, null);
   } catch(e) { err.textContent = "Connection error. Please try again."; }
   finally { btn.disabled = false; btn.textContent = "Sign In"; }
@@ -499,6 +526,7 @@ async function loginKey() {
     if (!res.ok) { err.textContent = data.detail || "Invalid email or API key. Both must be correct."; return; }
     SESSION.email = email; SESSION.apiKey = apiKey;
     SESSION.passwordSet = !data.first_login;
+    saveSession();
     await loadDashboard(email, apiKey);
   } catch(e) { err.textContent = "Connection error. Please try again."; }
   finally { btn.disabled = false; btn.textContent = "View Dashboard"; }
@@ -527,7 +555,7 @@ async function sendReset() {
       body: JSON.stringify({email})
     });
     msg.style.display = "block";
-    msg.textContent = "✓ If that email has an account, a reset link has been sent. Check your inbox.";
+    msg.textContent = " If that email has an account, a reset link has been sent. Check your inbox.";
     btn.textContent = "Sent!";
   } catch(e) { btn.disabled = false; btn.textContent = "Send Reset Link"; }
 }
@@ -548,7 +576,7 @@ async function doReset() {
     const data = await res.json();
     if (!res.ok) { msg.textContent = data.detail; btn.disabled=false; btn.textContent="Set New Password"; return; }
     msg.style.color = "var(--green)";
-    msg.textContent = "✓ Password updated! Redirecting to login…";
+    msg.textContent = " Password updated! Redirecting to login…";
     setTimeout(() => { window.location.href = "dashboard.html"; }, 2000);
   } catch(e) { msg.textContent = "Error. Please try again."; btn.disabled=false; btn.textContent="Set New Password"; }
 }
@@ -660,7 +688,7 @@ function renderDashboard(data) {
               <span class="log-chip">Latency: <span>${e.latency_ms}ms</span></span>
             </div>
             <div class="log-reason-text">${e.reason}</div>
-            ${e.status === "BLOCKED" ? `<button class="btn-fp ${e.false_positive?"done":""}" id="fp-${e.event_id}" onclick="markFP(event,'${e.event_id}')">${e.false_positive?"✓ Marked as false positive":"⚑ Mark as false positive"}</button>` : ""}
+            ${e.status === "BLOCKED" ? `<button class="btn-fp ${e.false_positive?"done":""}" id="fp-${e.event_id}" onclick="markFP(event,'${e.event_id}')">${e.false_positive?" Marked as false positive":" Mark as false positive"}</button>` : ""}
           </div>
         </div>`;
     }).join("");
@@ -672,7 +700,7 @@ function renderDashboard(data) {
     <div class="fade-in">
       ${!SESSION.passwordSet ? `
         <div class="setup-banner">
-          <div><h3>🔐 Set your password</h3><p>Create a password to log in with email next time — no API key needed.</p></div>
+          <div><h3> Set your password</h3><p>Create a password to log in with email next time — no API key needed.</p></div>
           <button class="btn-setup" onclick="openPwdModal()">Set Password</button>
         </div>` : ""}
 
@@ -715,11 +743,11 @@ function renderDashboard(data) {
             <div class="panel-hd"><div class="panel-title">Account</div></div>
             <div class="acc-row"><span class="acc-lbl">Email</span><span class="acc-val">${acc.email}</span></div>
             <div class="acc-row"><span class="acc-lbl">Plan</span><span class="acc-val amber">${acc.plan.charAt(0).toUpperCase()+acc.plan.slice(1)}</span></div>
-            <div class="acc-row"><span class="acc-lbl">Status</span><span class="acc-val green">● Active</span></div>
+            <div class="acc-row"><span class="acc-lbl">Status</span><span class="acc-val green"> Active</span></div>
             <div class="acc-row"><span class="acc-lbl">Member since</span><span class="acc-val">${new Date(acc.member_since).toLocaleDateString("en-ZA",{year:"numeric",month:"long",day:"numeric"})}</span></div>
-            <div class="acc-row"><span class="acc-lbl">Password</span><span class="acc-val ${SESSION.passwordSet?"green":"red"}">${SESSION.passwordSet?"Set ✓":"Not set"}</span></div>
+            <div class="acc-row"><span class="acc-lbl">Password</span><span class="acc-val ${SESSION.passwordSet?"green":"red"}">${SESSION.passwordSet?"Set ":"Not set"}</span></div>
             <div style="margin-top:15px;display:flex;gap:10px;flex-wrap:wrap">
-              <a href="index.html#pricing" target="_blank" style="display:inline-block;background:var(--amber);color:#000;font-family:var(--display);font-size:13px;font-weight:700;padding:8px 16px;border-radius:6px;text-decoration:none">Upgrade Plan →</a>
+              <button onclick="document.getElementById('upgradeModal').classList.add('open')" style="display:inline-block;background:var(--amber);color:#000;font-family:var(--display);font-size:13px;font-weight:700;padding:8px 16px;border-radius:6px;border:none;cursor:pointer">Upgrade Plan →</button>
               <a href="mailto:info@invenova.tech" style="display:inline-flex;align-items:center;font-size:13px;color:var(--slate2);text-decoration:none">Support</a>
             </div>
           </div>
@@ -736,10 +764,10 @@ function renderDashboard(data) {
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:10px">
           <div class="log-tabs">
             <button class="log-tab ${LOG_FILTER==="blocked"?"active":""}" onclick="setLogFilter('blocked')">
-              🚨 Blocked <span class="count red">${blockedEvts.length}</span>
+               Blocked <span class="count red">${blockedEvts.length}</span>
             </button>
             <button class="log-tab ${LOG_FILTER==="passed"?"active":""}" onclick="setLogFilter('passed')">
-              ✓ Passed <span class="count green">${passedEvts.length}</span>
+               Passed <span class="count green">${passedEvts.length}</span>
             </button>
           </div>
           <button class="btn-sm" onclick="refresh()">↻ Refresh</button>
@@ -790,7 +818,7 @@ function setLogFilter(filter) {
               <span class="log-chip">Latency: <span>${e.latency_ms}ms</span></span>
             </div>
             <div class="log-reason-text">${e.reason}</div>
-            ${e.status === "BLOCKED" ? `<button class="btn-fp ${e.false_positive?"done":""}" id="fp-${e.event_id}" onclick="markFP(event,'${e.event_id}')">${e.false_positive?"✓ Marked as false positive":"⚑ Mark as false positive"}</button>` : ""}
+            ${e.status === "BLOCKED" ? `<button class="btn-fp ${e.false_positive?"done":""}" id="fp-${e.event_id}" onclick="markFP(event,'${e.event_id}')">${e.false_positive?" Marked as false positive":" Mark as false positive"}</button>` : ""}
           </div>
         </div>`;
     }).join("");
@@ -815,9 +843,9 @@ async function markFP(evt, eventId) {
     await fetch(`${API}/my-log/false-positive/${eventId}`, {
       method:"POST", headers:{"X-API-Key": SESSION.apiKey}
     });
-    btn.textContent = "✓ Marked as false positive";
+    btn.textContent = " Marked as false positive";
     btn.classList.add("done");
-  } catch(e) { btn.textContent = "⚑ Mark as false positive"; }
+  } catch(e) { btn.textContent = " Mark as false positive"; }
 }
 
 async function toggleShadow(enabled) {
@@ -904,6 +932,7 @@ async function doSetPassword() {
     const data = await res.json();
     if (!res.ok) { msg.textContent = data.detail; return; }
     SESSION.passwordSet = true;
+    saveSession();
     closePwdModal();
     refresh();
   } catch(e) { msg.textContent = "Error. Please try again."; }
@@ -978,7 +1007,7 @@ document.addEventListener("keydown", e => {
       const data = await res.json();
       if (res.ok) {
         msg.style.color = "var(--green)";
-        msg.textContent = "✓ " + data.message;
+        msg.textContent = " " + data.message;
         setTimeout(() => {
           document.getElementById("cancelModal").classList.remove("open");
           logout();
@@ -991,10 +1020,50 @@ document.addEventListener("keydown", e => {
 
 </script>
 
+
+<!-- UPGRADE MODAL -->
+<div class="modal-overlay" id="upgradeModal">
+  <div class="modal" style="max-width:520px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <div class="modal-title"> Upgrade Your Plan</div>
+      <button class="btn-sm" onclick="document.getElementById('upgradeModal').classList.remove('open')"> Close</button>
+    </div>
+    <p class="modal-sub">Choose a plan that fits your usage. Your API key stays the same after upgrading — no code changes needed.</p>
+    
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px">
+      <div style="background:var(--bg);border:1px solid var(--amber);border-radius:10px;padding:18px">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--amber);letter-spacing:.1em;margin-bottom:8px">PRO</div>
+        <div style="font-family:var(--display);font-size:28px;font-weight:700;color:var(--slate1);margin-bottom:4px">$49<span style="font-size:14px;color:var(--slate3)">/mo</span></div>
+        <ul style="list-style:none;margin:12px 0;padding:0">
+          <li style="font-size:12px;color:var(--slate2);padding:4px 0"> 100,000 requests/month</li>
+          <li style="font-size:12px;color:var(--slate2);padding:4px 0"> 3 API keys with labels</li>
+          <li style="font-size:12px;color:var(--slate2);padding:4px 0"> PII masking pipeline</li>
+          <li style="font-size:12px;color:var(--slate2);padding:4px 0"> Shadow mode</li>
+          <li style="font-size:12px;color:var(--slate2);padding:4px 0"> False positive reporting</li>
+        </ul>
+        <a href="https://buy.paddle.com/product/pri_01kvvbn6223fy7phfcrp3xyp44" target="_blank" style="display:block;text-align:center;background:var(--amber);color:#000;font-family:var(--display);font-size:13px;font-weight:700;padding:9px;border-radius:6px;text-decoration:none">Upgrade to Pro →</a>
+      </div>
+      <div style="background:var(--bg);border:1px solid var(--purple);border-radius:10px;padding:18px">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--purple);letter-spacing:.1em;margin-bottom:8px">BUSINESS</div>
+        <div style="font-family:var(--display);font-size:28px;font-weight:700;color:var(--slate1);margin-bottom:4px">$199<span style="font-size:14px;color:var(--slate3)">/mo</span></div>
+        <ul style="list-style:none;margin:12px 0;padding:0">
+          <li style="font-size:12px;color:var(--slate2);padding:4px 0"> Unlimited requests</li>
+          <li style="font-size:12px;color:var(--slate2);padding:4px 0"> Unlimited API keys</li>
+          <li style="font-size:12px;color:var(--slate2);padding:4px 0"> PII masking pipeline</li>
+          <li style="font-size:12px;color:var(--slate2);padding:4px 0"> User ID &amp; model tracking</li>
+          <li style="font-size:12px;color:var(--slate2);padding:4px 0"> Organization ID for teams</li>
+        </ul>
+        <a href="https://buy.paddle.com/product/pri_01kvvbhyq6c5j8dsqshf7q94eg" target="_blank" style="display:block;text-align:center;background:var(--purple);color:#000;font-family:var(--display);font-size:13px;font-weight:700;padding:9px;border-radius:6px;text-decoration:none">Upgrade to Business →</a>
+      </div>
+    </div>
+    <p style="font-size:12px;color:var(--slate3);text-align:center">After payment your plan updates automatically. Questions? <a href="mailto:info@invenova.tech" style="color:var(--amber)">info@invenova.tech</a></p>
+  </div>
+</div>
+
 <!-- CANCEL MODAL -->
 <div class="modal-overlay" id="cancelModal">
   <div class="modal">
-    <div class="modal-title" style="color:var(--red)">⚠️ Cancel Subscription</div>
+    <div class="modal-title" style="color:var(--red)"> Cancel Subscription</div>
     <p class="modal-sub">Are you sure? Your API key stays active until the end of your current billing period. You can reactivate anytime.</p>
     <div id="cancelMsg" class="auth-error"></div>
     <div class="modal-footer">
