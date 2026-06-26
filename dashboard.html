@@ -448,15 +448,7 @@ let DASH_DATA = null;
 let LOG_FILTER = "blocked"; // default: show blocked
 
 const urlParams = new URLSearchParams(window.location.search);
-  // Try to restore session on page load
-  if (!resetToken) {
-    const _restored = restoreSession();
-    if (_restored && SESSION.email && SESSION.apiKey) {
-      document.getElementById('loginScreen').style.display = 'none';
-      document.getElementById('dashboard').style.display = 'block';
-      loadDashboard(SESSION.email, SESSION.apiKey);
-    }
-  }
+  // Session restore happens after all functions are defined (see bottom of script)
 const resetToken = urlParams.get("reset");
 if (resetToken) {
   document.getElementById("loginScreen").style.display = "none";
@@ -991,6 +983,16 @@ document.addEventListener("keydown", e => {
     if (document.getElementById("forgotScreen").style.display !== "none") sendReset();
   }
 });
+
+// Restore session after all functions are loaded
+if (!resetToken) {
+  const _restored = restoreSession();
+  if (_restored && SESSION.email && SESSION.apiKey) {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    loadDashboard(SESSION.email, SESSION.apiKey);
+  }
+}
 
   async function pushCrispContext() {
     if (!window.$crisp || !SESSION.email) return;
