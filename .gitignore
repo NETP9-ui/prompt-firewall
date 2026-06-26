@@ -6,3 +6,9 @@ firewall.db
 .DS_Store
 # Local Netlify folder
 .netlify
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+!.env.example

@@ -200,6 +200,20 @@
     .tooltip-wrap:hover .tip{visibility:visible;opacity:1}
     .cancel-link{background:none;border:none;color:var(--slate3);font-size:12px;cursor:pointer;text-decoration:underline;margin-top:10px;display:block}
     .cancel-link:hover{color:var(--red)}
+    /* SANDBOX */
+    .sandbox-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:22px}
+    .sandbox-input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--slate1);font-family:var(--mono);font-size:13px;padding:12px 14px;outline:none;resize:vertical;min-height:80px;transition:border-color .2s;margin-bottom:12px}
+    .sandbox-input:focus{border-color:var(--amber)}
+    .sandbox-input::placeholder{color:var(--slate3)}
+    .btn-test{background:var(--amber);color:#000;border:none;border-radius:7px;font-family:var(--display);font-size:14px;font-weight:700;padding:10px 24px;cursor:pointer;transition:opacity .15s}
+    .btn-test:hover{opacity:.88}
+    .btn-test:disabled{opacity:.45;cursor:not-allowed}
+    .sandbox-result{margin-top:14px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:14px;display:none}
+    .sandbox-result.show{display:block}
+    .sandbox-verdict{font-family:var(--display);font-size:18px;font-weight:700;margin-bottom:6px}
+    .sandbox-verdict.passed{color:var(--green)}
+    .sandbox-verdict.blocked{color:var(--red)}
+    .sandbox-detail{font-size:12px;color:var(--slate2);font-family:var(--mono);margin-bottom:4px}
     /* MISC */
     @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
     .fade-in{animation:fadeUp .35s ease both}
@@ -357,8 +371,10 @@ if is_safe(user_input):
     reply = ask_your_ai(user_input)
 else:
     reply = "Sorry, I cannot process that request."</div>
-      <h4>Step 3 — Watch your dashboard</h4>
-      <p>Come back here to see what your firewall has blocked. Every blocked attack appears in your Security Log below.</p>
+      <h4>Step 3 — Test it in the Sandbox</h4>
+      <p>Use the <strong>Sandbox</strong> panel on your dashboard to test any message instantly. Type a message, click Test Message, and see BLOCKED or PASSED with the reason — no code needed.</p>
+      <h4>Step 4 — Watch your Security Log</h4>
+      <p>Every blocked attack appears in your Security Log. Click the Blocked tab to see attacks, click any row to expand and see full details including latency, user ID, and the reason it was blocked.</p>
     </div>
 
     <div class="manual-section">
@@ -374,7 +390,9 @@ else:
       <h4>Reading your Security Log</h4>
       <p>Click the <strong>Blocked</strong> tab to see attacks — this is your main view. Click any row to expand it and see the full details including the reason it was blocked. Click <strong>Passed</strong> to see safe messages that went through.</p>
       <h4>Running out of requests?</h4>
-      <p>Your usage bar shows how much of your monthly 10,000 requests you have used. When it turns red you are close to the limit. Upgrade to Pro to get 100,000 requests.</p>
+      <p>Your usage bar shows how much of your monthly 10,000 requests you have used. When it turns red you are close to the limit. You can enable the <strong>Overages</strong> toggle in the billing widget to stay live past your limit at $0.50 per 1,000 extra requests. Or upgrade to Pro to get 100,000 requests.</p>
+      <h4>Using the Sandbox</h4>
+      <p>The <strong>Sandbox</strong> panel lets you test any message instantly without writing code. Type a message, click Test Message, and see whether it would be BLOCKED or PASSED — and exactly why.</p>
     </div>
 
     <div class="manual-section">
@@ -654,8 +672,9 @@ function renderDashboard(data) {
   const maxBk = Math.max(1, ...Object.values(bk));
   const isPro = acc.plan === "pro" || acc.plan === "business";
 
-  const blockedEvts = evts.filter(e => e.status === "BLOCKED" || e.status.includes("shadow"));
-  const passedEvts  = evts.filter(e => e.status === "PASSED");
+  const blockedEvts = evts.filter(e => (e.status === "BLOCKED" || e.status.includes("shadow")) && !e.false_positive);
+  const passedEvts  = evts.filter(e => e.status === "PASSED" && !e.false_positive);
+  const fpEvts      = evts.filter(e => e.false_positive);
 
   const shadowHtml = isPro ? `
     <div class="toggle-row">
@@ -701,11 +720,12 @@ function renderDashboard(data) {
       const keyLabelHtml = isPro && e.key_label ? `<span class="log-chip">Key: <span>${e.key_label}</span></span>` : "";
       const userHtml = e.user_id ? `<span class="log-chip">User: <span>${e.user_id}</span></span>` : `<span class="log-chip">User: <span style="font-style:italic">not identified</span></span>`;
       const modelHtml = e.target_model ? `<span class="log-chip">Model: <span>${e.target_model}</span></span>` : `<span class="log-chip">Model: <span style="font-style:italic">not specified</span></span>`;
+      const isFP = filter === "fp";
       return `
         <div class="log-entry" onclick="toggleLogDetail('${e.event_id}')">
           <div class="log-entry-top">
             <span class="log-time">${new Date(e.timestamp).toLocaleString("en-ZA",{month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"})}</span>
-            <span class="log-badge ${badgeClass}">${e.status}</span>
+            <span class="log-badge ${isFP ? "shadow" : badgeClass}">${isFP ? "FALSE POSITIVE" : e.status}</span>
             <span class="log-msg">${e.message_preview}</span>
             <span class="log-lat">${e.latency_ms}ms</span>
           </div>
@@ -716,7 +736,8 @@ function renderDashboard(data) {
               <span class="log-chip">Latency: <span>${e.latency_ms}ms</span></span>
             </div>
             <div class="log-reason-text">${e.reason}</div>
-            ${e.status === "BLOCKED" ? `<button class="btn-fp ${e.false_positive?"done":""}" id="fp-${e.event_id}" onclick="markFP(event,'${e.event_id}')">${e.false_positive?"Marked as false positive":"Mark as false positive"}</button>` : ""}
+            ${isFP ? `<button class="btn-fp" style="border-color:var(--red);color:var(--red)" onclick="unmarkFP(event,'${e.event_id}')">Unmark false positive</button>` : ""}
+            ${!isFP && e.status === "BLOCKED" ? `<button class="btn-fp" id="fp-${e.event_id}" onclick="markFP(event,'${e.event_id}')">Mark as false positive</button>` : ""}
           </div>
         </div>`;
     }).join("");
@@ -746,6 +767,7 @@ function renderDashboard(data) {
         <div class="stat-card c-red"><div class="stat-label">Blocked</div><div class="stat-val red">${stats.blocked.toLocaleString()}</div><div class="stat-sub">Attacks stopped</div></div>
         <div class="stat-card c-blue"><div class="stat-label">Block Rate</div><div class="stat-val blue">${stats.block_rate}%</div><div class="stat-sub">Of all messages</div></div>
         <div class="stat-card c-purple"><div class="stat-label">Avg Latency</div><div class="stat-val purple">${stats.avg_latency_ms}ms</div><div class="stat-sub">Per request</div></div>
+        <div class="stat-card c-blue"><div class="stat-label">False Positives</div><div class="stat-val blue">${fpEvts.length}</div><div class="stat-sub">Marked by you</div></div>
       </div>
 
       <div class="two-col">
@@ -815,6 +837,22 @@ function renderDashboard(data) {
         </div>
       </div>
 
+      <!-- SANDBOX -->
+      <div class="sandbox-wrap">
+        <div class="panel-hd" style="margin-bottom:12px">
+          <div class="panel-title">Sandbox</div>
+          <div class="panel-eyebrow">Test your firewall live</div>
+        </div>
+        <p style="font-size:12px;color:var(--slate3);margin-bottom:12px">Type any message below and see instantly whether your firewall would block or pass it.</p>
+        <textarea class="sandbox-input" id="sandboxInput" placeholder="Type a message to test... e.g. ignore previous instructions"></textarea>
+        <button class="btn-test" id="sandboxBtn" onclick="runSandbox()">Test Message</button>
+        <div class="sandbox-result" id="sandboxResult">
+          <div class="sandbox-verdict" id="sandboxVerdict"></div>
+          <div class="sandbox-detail" id="sandboxReason"></div>
+          <div class="sandbox-detail" id="sandboxLatency"></div>
+        </div>
+      </div>
+
       <!-- LOG with tabs -->
       <div class="log-section">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:10px">
@@ -830,7 +868,7 @@ function renderDashboard(data) {
         </div>
         <div class="log-wrap">
           <div class="log-scroll" id="logList">
-            ${LOG_FILTER==="blocked" ? renderLog(blockedEvts,"blocked") : renderLog(passedEvts,"passed")}
+            ${LOG_FILTER==="blocked" ? renderLog(blockedEvts,"blocked") : LOG_FILTER==="passed" ? renderLog(passedEvts,"passed") : renderLog(fpEvts,"fp")}
           </div>
         </div>
       </div>
@@ -848,8 +886,9 @@ function setLogFilter(filter) {
   LOG_FILTER = filter;
   if (!DASH_DATA) return;
   const evts = DASH_DATA.recent_events;
-  const blockedEvts = evts.filter(e => e.status === "BLOCKED" || e.status.includes("shadow"));
-  const passedEvts  = evts.filter(e => e.status === "PASSED");
+  const blockedEvts = evts.filter(e => (e.status === "BLOCKED" || e.status.includes("shadow")) && !e.false_positive);
+  const passedEvts  = evts.filter(e => e.status === "PASSED" && !e.false_positive);
+  const fpEvts      = evts.filter(e => e.false_positive);
   const isPro = SESSION.plan === "pro" || SESSION.plan === "business";
 
   function renderLog(list, f) {
@@ -883,8 +922,10 @@ function setLogFilter(filter) {
 
   document.querySelectorAll(".log-tab").forEach(t=>t.classList.remove("active"));
   event.target.closest(".log-tab").classList.add("active");
-  document.getElementById("logList").innerHTML =
-    filter === "blocked" ? renderLog(blockedEvts,"blocked") : renderLog(passedEvts,"passed");
+  const html = filter === "blocked" ? renderLog(blockedEvts,"blocked") 
+             : filter === "passed"  ? renderLog(passedEvts,"passed")
+             : renderLog(fpEvts,"fp");
+  document.getElementById("logList").innerHTML = html;
 }
 
 function toggleLogDetail(id) {
@@ -895,14 +936,23 @@ function toggleLogDetail(id) {
 async function markFP(evt, eventId) {
   evt.stopPropagation();
   const btn = document.getElementById(`fp-${eventId}`);
-  btn.textContent = "Sending…";
+  if (btn) btn.textContent = "Sending…";
   try {
     await fetch(`${API}/my-log/false-positive/${eventId}`, {
       method:"POST", headers:{"X-API-Key": SESSION.apiKey}
     });
-    btn.textContent = "Marked as false positive";
-    btn.classList.add("done");
-  } catch(e) { btn.textContent = "Mark as false positive"; }
+    await refresh();
+  } catch(e) { if (btn) btn.textContent = "Mark as false positive"; }
+}
+
+async function unmarkFP(evt, eventId) {
+  evt.stopPropagation();
+  try {
+    await fetch(`${API}/my-log/false-positive/${eventId}?unmark=true`, {
+      method:"POST", headers:{"X-API-Key": SESSION.apiKey}
+    });
+    await refresh();
+  } catch(e) { console.error("Unmark failed", e); }
 }
 
 async function toggleShadow(enabled) {
@@ -1012,6 +1062,46 @@ async function refresh() {
     DASH_DATA = data;
     renderDashboard(data);
   } catch(e) { console.error("Refresh failed", e); }
+}
+
+async function runSandbox() {
+  const msg = document.getElementById("sandboxInput").value.trim();
+  const btn = document.getElementById("sandboxBtn");
+  const result = document.getElementById("sandboxResult");
+  const verdict = document.getElementById("sandboxVerdict");
+  const reason = document.getElementById("sandboxReason");
+  const latency = document.getElementById("sandboxLatency");
+
+  if (!msg) return;
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Testing…';
+  result.classList.remove("show");
+
+  try {
+    const res = await fetch(`${API}/analyze`, {
+      method: "POST",
+      headers: {"X-API-Key": SESSION.apiKey, "Content-Type": "application/json"},
+      body: JSON.stringify({message: msg})
+    });
+    const data = await res.json();
+
+    const isBlocked = data.status === "BLOCKED" || data.status?.includes("BLOCKED");
+    verdict.textContent = isBlocked ? "BLOCKED" : "PASSED";
+    verdict.className = "sandbox-verdict " + (isBlocked ? "blocked" : "passed");
+    reason.textContent = "Reason: " + (data.reason || "No threats detected");
+    latency.textContent = "Response time: " + (data.latency_ms || 0) + "ms";
+    result.classList.add("show");
+  } catch(e) {
+    verdict.textContent = "ERROR";
+    verdict.className = "sandbox-verdict blocked";
+    reason.textContent = "Connection error. Please try again.";
+    latency.textContent = "";
+    result.classList.add("show");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Test Message";
+  }
 }
 
 function logout() {
