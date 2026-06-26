@@ -66,7 +66,7 @@ async def err403(request, exc):
 
 @app.exception_handler(429)
 async def err429(request, exc):
-    return JSONResponse(status_code=429, content={"error":"Too many requests.","message":"Please wait a moment before trying again."})
+    return JSONResponse(status_code=429, content={"error":"Too many requests.","message":"You have hit your rate limit or monthly plan limit. Check your dashboard to upgrade your plan or enable overages. Contact info@invenova.tech for help."})
 
 # ── DB ─────────────────────────────────────────────────────────────────────
 @contextmanager
