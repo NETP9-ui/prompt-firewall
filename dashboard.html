@@ -448,8 +448,8 @@ let DASH_DATA = null;
 let LOG_FILTER = "blocked"; // default: show blocked
 
 const urlParams = new URLSearchParams(window.location.search);
-  // Session restore happens after all functions are defined (see bottom of script)
 const resetToken = urlParams.get("reset");
+// Session restore happens after all functions are defined (see bottom of script)
 if (resetToken) {
   document.getElementById("loginScreen").style.display = "none";
   document.getElementById("resetScreen").style.display = "flex";
