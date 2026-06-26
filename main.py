@@ -35,8 +35,41 @@ PLAN_MAX_KEYS = {"starter": 1,      "pro": 3,        "business": -1}
 limiter = Limiter(key_func=get_remote_address, default_limits=["30/minute"])
 
 # ── App ────────────────────────────────────────────────────────────────────
-app = FastAPI(title="Prompt Firewall", version="5.1.0", lifespan=lifespan)
+import asyncio
+
+app = FastAPI(title="Prompt Firewall", version="5.1.0")
 app.state.limiter = limiter
+
+async def monthly_reset_checker():
+    """Runs every 6 hours and resets usage counters when billing cycle is due."""
+    await asyncio.sleep(30)  # Wait 30 seconds after startup before first check
+    while True:
+        try:
+            now = datetime.utcnow().isoformat() + "Z"
+            customers = db_all("""
+                SELECT * FROM customers 
+                WHERE status='active' 
+                AND billing_reset_date IS NOT NULL 
+                AND billing_reset_date <= %s
+            """, (now,))
+            for c in customers:
+                next_reset = (datetime.utcnow() + timedelta(days=30)).isoformat() + "Z"
+                db_exec("""
+                    UPDATE customers SET 
+                        current_month_requests = 0,
+                        has_80_alert = 0,
+                        has_100_alert = 0,
+                        billing_reset_date = %s
+                    WHERE id = %s
+                """, (next_reset, c["id"]))
+                print(f"[RESET] Monthly usage reset for {c['email']}")
+        except Exception as e:
+            print(f"[RESET ERROR] {e}")
+        await asyncio.sleep(6 * 60 * 60)
+
+@app.on_event("startup")
+async def startup_event():
+    asyncio.create_task(monthly_reset_checker())
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 app.add_middleware(
     CORSMiddleware,
@@ -130,48 +163,6 @@ def init_db():
             expires_at TEXT NOT NULL, used INT DEFAULT 0)""")
 
 init_db()
-
-# ── Monthly reset background task ─────────────────────────────────────────
-import asyncio
-from contextlib import asynccontextmanager
-
-async def monthly_reset_checker():
-    """Runs every 6 hours and resets usage counters when billing cycle is due."""
-    while True:
-        try:
-            now = datetime.utcnow().isoformat() + "Z"
-            # Find customers whose billing_reset_date has passed
-            customers = db_all("""
-                SELECT * FROM customers 
-                WHERE status='active' 
-                AND billing_reset_date IS NOT NULL 
-                AND billing_reset_date <= %s
-            """, (now,))
-            
-            for c in customers:
-                # Reset usage counters and set next reset date
-                next_reset = (datetime.utcnow() + timedelta(days=30)).isoformat() + "Z"
-                db_exec("""
-                    UPDATE customers SET 
-                        current_month_requests = 0,
-                        has_80_alert = 0,
-                        has_100_alert = 0,
-                        billing_reset_date = %s
-                    WHERE id = %s
-                """, (next_reset, c["id"]))
-                print(f"[RESET] Monthly usage reset for {c['email']}")
-        except Exception as e:
-            print(f"[RESET ERROR] {e}")
-        
-        # Check every 6 hours
-        await asyncio.sleep(6 * 60 * 60)
-
-@asynccontextmanager
-async def lifespan(app):
-    # Start background monthly reset checker
-    task = asyncio.create_task(monthly_reset_checker())
-    yield
-    task.cancel()
 
 # ── Auth helpers ───────────────────────────────────────────────────────────
 def hash_password(p): return bcrypt.hashpw(p.encode(), bcrypt.gensalt()).decode()
