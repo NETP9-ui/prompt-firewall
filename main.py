@@ -269,15 +269,15 @@ def analyze_prompt(message: str, max_length: int = MAX_LENGTH):
     return "PASSED", "No threats detected. Safe to forward to AI."
 
 # ── Email helpers ──────────────────────────────────────────────────────────
-async def send_email(to: str, subject: str, html: str):
+async def send_email(recipient: str, subject: str, html: str):
     if not RESEND_API_KEY:
-        print(f"[EMAIL SKIP] To:{to} Subject:{subject}")
+        print(f"[EMAIL SKIP] To:{recipient} Subject:{subject}")
         return
     async with httpx.AsyncClient() as client:
         await client.post(
             "https://api.resend.com/emails",
             headers={"Authorization": f"Bearer {RESEND_API_KEY}"},
-            json={"from": FROM_EMAIL, "to": to, "subject": subject, "html": html}
+            json={"from": FROM_EMAIL, "to": recipient, "subject": subject, "html": html}
         )
 
 async def send_api_key_email(email: str, api_key: str, plan: str, label: str = "Default"):
