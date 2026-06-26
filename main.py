@@ -45,6 +45,50 @@ limiter = Limiter(key_func=get_remote_address, default_limits=["30/minute"])
 app = FastAPI(title="Prompt Firewall 🛡️", version="5.0.0")
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# ── Friendly error responses ───────────────────────────────────────────────
+from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
+
+@app.exception_handler(500)
+async def internal_error_handler(request: Request, exc: Exception):
+    return JSONResponse(status_code=500, content={
+        "error": "Something went wrong on our end.",
+        "message": "Our team has been notified. Please try again in a moment or contact info@invenova.tech if this persists.",
+        "status": "error"
+    })
+
+@app.exception_handler(RequestValidationError)
+async def validation_error_handler(request: Request, exc: RequestValidationError):
+    return JSONResponse(status_code=422, content={
+        "error": "We could not understand your request.",
+        "message": "Please check that your request body is valid JSON and all required fields are included.",
+        "status": "error"
+    })
+
+@app.exception_handler(404)
+async def not_found_handler(request: Request, exc: Exception):
+    return JSONResponse(status_code=404, content={
+        "error": "This endpoint does not exist.",
+        "message": "Check the URL and try again. View all available endpoints at /docs",
+        "status": "error"
+    })
+
+@app.exception_handler(403)
+async def forbidden_handler(request: Request, exc: Exception):
+    return JSONResponse(status_code=403, content={
+        "error": "Access denied.",
+        "message": "Your API key is invalid, missing, or has been revoked. Check your key and try again, or contact info@invenova.tech",
+        "status": "error"
+    })
+
+@app.exception_handler(429)
+async def rate_limit_handler(request: Request, exc: Exception):
+    return JSONResponse(status_code=429, content={
+        "error": "Too many requests.",
+        "message": "You have sent too many requests in a short time. Please wait a moment before trying again.",
+        "status": "error"
+    })
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[ALLOWED_ORIGIN],
