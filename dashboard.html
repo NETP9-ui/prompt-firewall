@@ -285,7 +285,7 @@
 <!-- SET PASSWORD MODAL -->
 <div class="modal-overlay" id="setPwdModal">
   <div class="modal">
-    <div class="modal-title" id="pwdModalTitle"> Set your password</div>
+    <div class="modal-title" id="pwdModalTitle">Set your password</div>
     <p class="modal-sub" id="pwdModalSub">Create a password so you can log in with your email next time — no API key needed.</p>
     <label class="field-label">NEW PASSWORD</label>
     <input class="field" id="newPwd1" type="password" placeholder="Minimum 8 characters" />
@@ -326,14 +326,14 @@
   <div class="modal" style="max-width:640px">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px">
       <div>
-        <div class="modal-title"> User Manual</div>
+        <div class="modal-title">UserManual</div>
         <p style="font-size:13px;color:var(--slate3);margin-top:4px">Everything you need to get the most out of Prompt Firewall.</p>
       </div>
-      <button class="btn-sm" onclick="closeManual()" style="flex-shrink:0;margin-left:16px"> Close</button>
+      <button class="btn-sm" onclick="closeManual()" style="flex-shrink:0;margin-left:16px">Close</button>
     </div>
 
     <div class="manual-section">
-      <h3> Getting Started (All Plans)</h3>
+      <h3>Getting Started (All Plans)</h3>
       <p>Welcome! Here is how to protect your AI chatbot in 3 steps.</p>
       <h4>Step 1 — Find your API key</h4>
       <p>When you subscribed, we sent an email to your inbox with a key that looks like <code style="font-family:var(--mono);font-size:12px;color:var(--amber)">pf_abc...xyz</code>. Keep this safe — it is your access token.</p>
@@ -359,7 +359,7 @@ else:
     </div>
 
     <div class="manual-section">
-      <h3><span class="plan-chip starter">STARTER</span> Starter Plan Guide</h3>
+      <h3><span class="plan-chip starter">STARTER</span>Starter Plan Guide</h3>
       <p>You have access to 10,000 request screenings per month and 1 API key.</p>
       <h4>What you can do</h4>
       <ul>
@@ -375,7 +375,7 @@ else:
     </div>
 
     <div class="manual-section">
-      <h3><span class="plan-chip pro">PRO</span> Pro Plan Guide</h3>
+      <h3><span class="plan-chip pro">PRO</span>Pro Plan Guide</h3>
       <p>Everything in Starter plus 100,000 requests, up to 3 API keys, false positive reporting, and Shadow Mode.</p>
       <h4>Multiple API Keys</h4>
       <p>If you have more than one chatbot or team member, generate separate keys for each one. Click <strong>Generate New Key</strong> in the API Keys panel, give it a label like "Production Bot", and share that key with the relevant developer. You can revoke any key instantly if it is ever leaked.</p>
@@ -388,7 +388,7 @@ else:
     </div>
 
     <div class="manual-section">
-      <h3><span class="plan-chip biz">BUSINESS</span> Business Plan Guide</h3>
+      <h3><span class="plan-chip biz">BUSINESS</span>Business Plan Guide</h3>
       <p>Everything in Pro plus unlimited requests, unlimited API keys, and full team management.</p>
       <h4>Unlimited Keys for Your Team</h4>
       <p>Generate as many API keys as you need — one per developer, one per product, one per environment. Each key has its own label and can be revoked individually without affecting the others.</p>
@@ -404,7 +404,7 @@ else:
     </div>
 
     <div class="manual-section">
-      <h3> Common Questions</h3>
+      <h3>Common Questions</h3>
       <h4>What happens if I go over my request limit?</h4>
       <p>Requests over the limit return a 429 error. We email you before you hit the limit so you have time to upgrade.</p>
       <h4>My key stopped working — what happened?</h4>
@@ -429,7 +429,7 @@ else:
     <div class="nav-right">
       <span class="badge" id="navPlan">STARTER</span>
       <span class="badge shadow" id="shadowBadge" style="display:none">SHADOW MODE</span>
-      <button class="btn-sm amber" onclick="openManual()"> Manual</button>
+      <button class="btn-sm amber" onclick="openManual()">Manual</button>
       <span class="nav-email" id="navEmail"></span>
       <button class="btn-sm" onclick="logout()">Sign out</button>
     </div>
@@ -512,7 +512,10 @@ function switchTab(t) {
       btn.disabled = false; btn.textContent = "Sign In";
       return;
     }
-    saveSession();
+    sessionStorage.setItem('pf_email', SESSION.email);
+    sessionStorage.setItem('pf_key', SESSION.apiKey);
+    sessionStorage.setItem('pf_plan', SESSION.plan);
+    sessionStorage.setItem('pf_pwdSet', 'true');
     await loadDashboard(SESSION.email, SESSION.apiKey);
   } catch(e) { err.textContent = "Connection error. Please try again."; }
   finally { btn.disabled = false; btn.textContent = "Sign In"; }
@@ -536,7 +539,10 @@ async function loginKey() {
     SESSION.email = email;
     SESSION.apiKey = apiKey;
     SESSION.passwordSet = !data.first_login;
-    saveSession();
+    sessionStorage.setItem('pf_email', email);
+    sessionStorage.setItem('pf_key', apiKey);
+    sessionStorage.setItem('pf_plan', 'starter');
+    sessionStorage.setItem('pf_pwdSet', String(!data.first_login));
     await loadDashboard(email, apiKey);
   } catch(e) { err.textContent = "Connection error. Please try again."; }
   finally { btn.disabled = false; btn.textContent = "View Dashboard"; }
@@ -565,7 +571,7 @@ async function sendReset() {
       body: JSON.stringify({email})
     });
     msg.style.display = "block";
-    msg.textContent = " If that email has an account, a reset link has been sent. Check your inbox.";
+    msg.textContent = "If that email has an account, a reset link has been sent. Check your inbox.";
     btn.textContent = "Sent!";
   } catch(e) { btn.disabled = false; btn.textContent = "Send Reset Link"; }
 }
@@ -586,36 +592,32 @@ async function doReset() {
     const data = await res.json();
     if (!res.ok) { msg.textContent = data.detail; btn.disabled=false; btn.textContent="Set New Password"; return; }
     msg.style.color = "var(--green)";
-    msg.textContent = " Password updated! Redirecting to login…";
+    msg.textContent = "Password updated! Redirecting to login…";
     setTimeout(() => { window.location.href = "dashboard.html"; }, 2000);
   } catch(e) { msg.textContent = "Error. Please try again."; btn.disabled=false; btn.textContent="Set New Password"; }
 }
 
 async function loadDashboard(email, apiKey) {
-  const loginScreen = document.getElementById("loginScreen");
-  const dashboard = document.getElementById("dashboard");
-  const mainContent = document.getElementById("mainContent");
-
-  loginScreen.style.display = "none";
-  dashboard.style.display = "block";
-  mainContent.innerHTML = `<div style="padding:80px;text-align:center;color:var(--slate3);font-family:var(--mono)"><div class="spinner"></div> Loading your dashboard…</div>`;
-
+  document.getElementById("loginScreen").style.display = "none";
+  document.getElementById("dashboard").style.display = "block";
   const keyToUse = apiKey || SESSION.apiKey;
   try {
     const res = await fetch(`${API}/my-log?email=${encodeURIComponent(email)}&limit=50`, {
       headers:{"X-API-Key": keyToUse}
     });
     if (!res.ok) {
-      if (res.status === 401 || res.status === 403) {
-        clearStoredAuth();
-        loginScreen.style.display = "flex";
-        dashboard.style.display = "none";
-        mainContent.innerHTML = `<div style="padding:80px;text-align:center;color:var(--slate3);font-family:var(--mono)">Session expired. Please log in again.</div>`;
+      // Try to refresh with stored credentials
+      const storedEmail = sessionStorage.getItem('pf_email');
+      const storedKey   = LS('pf_key');
+      if (storedEmail && storedKey && (storedEmail !== email || storedKey !== keyToUse)) {
+        SESSION.email  = storedEmail;
+        SESSION.apiKey = storedKey;
+        await loadDashboard(storedEmail, storedKey);
         return;
       }
-      loginScreen.style.display = "none";
-      dashboard.style.display = "block";
-      mainContent.innerHTML = `<div style="padding:48px;text-align:center;color:var(--slate3);font-family:var(--mono)">We could not refresh your dashboard right now. You are still signed in.</div>`;
+      clearStoredAuth();
+      document.getElementById("loginScreen").style.display = "flex";
+      document.getElementById("dashboard").style.display = "none";
       return;
     }
     const data = await res.json();
@@ -624,21 +626,10 @@ async function loadDashboard(email, apiKey) {
     pushCrispContext();
     SESSION.passwordSet = data.account.password_set;
     SESSION.apiKey = keyToUse;
-    saveSession();
-    loginScreen.style.display = "none";
-    dashboard.style.display = "block";
     renderDashboard(data);
   } catch(e) {
-    if (SESSION.email) {
-      loginScreen.style.display = "none";
-      dashboard.style.display = "block";
-      mainContent.innerHTML = `<div style="padding:48px;text-align:center;color:var(--slate3);font-family:var(--mono)">Connection issue while loading your dashboard. You remain signed in.</div>`;
-    } else {
-      clearStoredAuth();
-      loginScreen.style.display = "flex";
-      dashboard.style.display = "none";
-      mainContent.innerHTML = `<div style="padding:48px;text-align:center;color:var(--red);font-family:var(--mono)">Connection error. Please refresh.</div>`;
-    }
+    document.getElementById("mainContent").innerHTML =
+      `<div style="padding:48px;text-align:center;color:var(--red);font-family:var(--mono)">Connection error. Please refresh.</div>`;
   }
 }
 
@@ -722,7 +713,7 @@ function renderDashboard(data) {
               <span class="log-chip">Latency: <span>${e.latency_ms}ms</span></span>
             </div>
             <div class="log-reason-text">${e.reason}</div>
-            ${e.status === "BLOCKED" ? `<button class="btn-fp ${e.false_positive?"done":""}" id="fp-${e.event_id}" onclick="markFP(event,'${e.event_id}')">${e.false_positive?" Marked as false positive":" Mark as false positive"}</button>` : ""}
+            ${e.status === "BLOCKED" ? `<button class="btn-fp ${e.false_positive?"done":""}" id="fp-${e.event_id}" onclick="markFP(event,'${e.event_id}')">${e.false_positive?"Marked as false positive":"Mark as false positive"}</button>` : ""}
           </div>
         </div>`;
     }).join("");
@@ -734,7 +725,7 @@ function renderDashboard(data) {
     <div class="fade-in">
       ${!SESSION.passwordSet ? `
         <div class="setup-banner">
-          <div><h3> Set your password</h3><p>Create a password to log in with email next time — no API key needed.</p></div>
+          <div><h3>Set your password</h3><p>Create a password to log in with email next time — no API key needed.</p></div>
           <button class="btn-setup" onclick="openPwdModal()">Set Password</button>
         </div>` : ""}
 
@@ -777,11 +768,10 @@ function renderDashboard(data) {
             <div class="panel-hd"><div class="panel-title">Account</div></div>
             <div class="acc-row"><span class="acc-lbl">Email</span><span class="acc-val">${acc.email}</span></div>
             <div class="acc-row"><span class="acc-lbl">Plan</span><span class="acc-val amber">${acc.plan.charAt(0).toUpperCase()+acc.plan.slice(1)}</span></div>
-            <div class="acc-row"><span class="acc-lbl">Status</span><span class="acc-val green"> Active</span></div>
+            <div class="acc-row"><span class="acc-lbl">Status</span><span class="acc-val green">Active</span></div>
             <div class="acc-row"><span class="acc-lbl">Member since</span><span class="acc-val">${new Date(acc.member_since).toLocaleDateString("en-ZA",{year:"numeric",month:"long",day:"numeric"})}</span></div>
-            <div class="acc-row" onclick="openPwdModal()" style="cursor:pointer"><span class="acc-lbl">Password</span><span class="acc-val ${SESSION.passwordSet?"green":"red"}">${SESSION.passwordSet?"Set ":"Not set"}</span></div>
+            <div class="acc-row"><span class="acc-lbl">Password</span><span class="acc-val ${SESSION.passwordSet?"green":"red"}">${SESSION.passwordSet?"Set ":"Not set"}</span></div>
             <div style="margin-top:15px;display:flex;gap:10px;flex-wrap:wrap">
-              <button onclick="openPwdModal()" style="display:inline-block;background:var(--slate2);color:#fff;font-family:var(--display);font-size:13px;font-weight:700;padding:8px 16px;border-radius:6px;border:none;cursor:pointer">${SESSION.passwordSet ? 'Change Password' : 'Set Password'}</button>
               <button onclick="document.getElementById('upgradeModal').classList.add('open')" style="display:inline-block;background:var(--amber);color:#000;font-family:var(--display);font-size:13px;font-weight:700;padding:8px 16px;border-radius:6px;border:none;cursor:pointer">Upgrade Plan →</button>
               <a href="mailto:info@invenova.tech" style="display:inline-flex;align-items:center;font-size:13px;color:var(--slate2);text-decoration:none">Support</a>
             </div>
@@ -799,10 +789,10 @@ function renderDashboard(data) {
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:10px">
           <div class="log-tabs">
             <button class="log-tab ${LOG_FILTER==="blocked"?"active":""}" onclick="setLogFilter('blocked')">
-               Blocked <span class="count red">${blockedEvts.length}</span>
+              Blocked <span class="count red">${blockedEvts.length}</span>
             </button>
             <button class="log-tab ${LOG_FILTER==="passed"?"active":""}" onclick="setLogFilter('passed')">
-               Passed <span class="count green">${passedEvts.length}</span>
+              Passed <span class="count green">${passedEvts.length}</span>
             </button>
           </div>
           <button class="btn-sm" onclick="refresh()">↻ Refresh</button>
@@ -854,7 +844,7 @@ function setLogFilter(filter) {
               <span class="log-chip">Latency: <span>${e.latency_ms}ms</span></span>
             </div>
             <div class="log-reason-text">${e.reason}</div>
-            ${e.status === "BLOCKED" ? `<button class="btn-fp ${e.false_positive?"done":""}" id="fp-${e.event_id}" onclick="markFP(event,'${e.event_id}')">${e.false_positive?" Marked as false positive":" Mark as false positive"}</button>` : ""}
+            ${e.status === "BLOCKED" ? `<button class="btn-fp ${e.false_positive?"done":""}" id="fp-${e.event_id}" onclick="markFP(event,'${e.event_id}')">${e.false_positive?"Marked as false positive":"Mark as false positive"}</button>` : ""}
           </div>
         </div>`;
     }).join("");
@@ -879,9 +869,9 @@ async function markFP(evt, eventId) {
     await fetch(`${API}/my-log/false-positive/${eventId}`, {
       method:"POST", headers:{"X-API-Key": SESSION.apiKey}
     });
-    btn.textContent = " Marked as false positive";
+    btn.textContent = "Marked as false positive";
     btn.classList.add("done");
-  } catch(e) { btn.textContent = " Mark as false positive"; }
+  } catch(e) { btn.textContent = "Mark as false positive"; }
 }
 
 async function toggleShadow(enabled) {
@@ -1015,8 +1005,8 @@ document.addEventListener("keydown", e => {
 if (!resetToken) {
   const _restored = restoreSession();
   if (_restored && SESSION.email && SESSION.apiKey) {
-    document.getElementById('loginScreen').style.display = 'flex';
-    document.getElementById('dashboard').style.display = 'none';
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
     loadDashboard(SESSION.email, SESSION.apiKey);
   }
 }
@@ -1076,8 +1066,8 @@ if (!resetToken) {
 <div class="modal-overlay" id="upgradeModal">
   <div class="modal" style="max-width:520px">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
-      <div class="modal-title"> Upgrade Your Plan</div>
-      <button class="btn-sm" onclick="document.getElementById('upgradeModal').classList.remove('open')"> Close</button>
+      <div class="modal-title">Upgrade Your Plan</div>
+      <button class="btn-sm" onclick="document.getElementById('upgradeModal').classList.remove('open')">Close</button>
     </div>
     <p class="modal-sub">Choose a plan that fits your usage. Your API key stays the same after upgrading — no code changes needed.</p>
     
@@ -1114,7 +1104,7 @@ if (!resetToken) {
 <!-- CANCEL MODAL -->
 <div class="modal-overlay" id="cancelModal">
   <div class="modal">
-    <div class="modal-title" style="color:var(--red)"> Cancel Subscription</div>
+    <div class="modal-title" style="color:var(--red)">Cancel Subscription</div>
     <p class="modal-sub">Are you sure? Your API key stays active until the end of your current billing period. You can reactivate anytime.</p>
     <div id="cancelMsg" class="auth-error"></div>
     <div class="modal-footer">
