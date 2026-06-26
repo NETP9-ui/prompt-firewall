@@ -6,762 +6,1001 @@
   <title>Prompt Firewall — Dashboard</title>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --bg:      #060b14;
-      --bg2:     #0d1526;
-      --bg3:     #111f35;
-      --border:  #1e293b;
-      --amber:   #f59e0b;
-      --amber2:  #fbbf24;
-      --green:   #22c55e;
-      --red:     #ef4444;
-      --blue:    #60a5fa;
-      --purple:  #a78bfa;
-      --slate1:  #f1f5f9;
-      --slate2:  #94a3b8;
-      --slate3:  #475569;
-      --mono:    'JetBrains Mono', monospace;
-      --sans:    'Inter', sans-serif;
-      --display: 'Space Grotesk', sans-serif;
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#060b14;--bg2:#0d1526;--bg3:#111f35;--border:#1e293b;
+      --amber:#f59e0b;--amber2:#fbbf24;--green:#22c55e;--red:#ef4444;
+      --blue:#60a5fa;--purple:#a78bfa;--slate1:#f1f5f9;--slate2:#94a3b8;
+      --slate3:#475569;--mono:"JetBrains Mono",monospace;--sans:"Inter",sans-serif;
+      --display:"Space Grotesk",sans-serif;
     }
+    html{scroll-behavior:smooth}
+    body{background:var(--bg);color:var(--slate1);font-family:var(--sans);min-height:100vh;-webkit-font-smoothing:antialiased}
 
-    html { scroll-behavior: smooth; }
-    body { background: var(--bg); color: var(--slate1); font-family: var(--sans); min-height: 100vh; -webkit-font-smoothing: antialiased; }
+    /* AUTH */
+    .auth-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;flex-direction:column;gap:24px}
+    .auth-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:40px 36px;width:100%;max-width:420px}
+    .auth-logo{text-align:center;font-size:42px;margin-bottom:14px}
+    .auth-title{font-family:var(--display);font-size:23px;font-weight:700;color:var(--slate1);text-align:center;margin-bottom:5px}
+    .auth-sub{font-size:13px;color:var(--slate3);text-align:center;margin-bottom:26px;line-height:1.6}
+    .field-label{display:block;font-size:11px;color:var(--slate3);margin-bottom:5px;font-family:var(--mono);letter-spacing:.08em}
+    .field{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--slate1);font-family:var(--mono);font-size:13px;padding:11px 13px;outline:none;transition:border-color .2s;margin-bottom:13px}
+    .field:focus{border-color:var(--amber)}
+    .field::placeholder{color:var(--slate3)}
+    .btn-primary{width:100%;background:var(--amber);color:#000;border:none;border-radius:8px;font-family:var(--display);font-size:15px;font-weight:700;padding:12px;cursor:pointer;transition:opacity .15s}
+    .btn-primary:hover{opacity:.88}
+    .btn-primary:disabled{opacity:.45;cursor:not-allowed}
+    .auth-link{background:none;border:none;color:var(--slate3);font-size:13px;cursor:pointer;text-decoration:underline;padding:0}
+    .auth-link:hover{color:var(--slate2)}
+    .auth-error{margin-top:10px;font-size:13px;color:var(--red);font-family:var(--mono);text-align:center}
+    .auth-success{margin-top:10px;font-size:13px;color:var(--green);font-family:var(--mono);text-align:center}
+    .tab-row{display:flex;margin-bottom:22px;border:1px solid var(--border);border-radius:8px;overflow:hidden}
+    .tab-btn{flex:1;padding:10px;background:none;border:none;color:var(--slate3);font-family:var(--sans);font-size:13px;cursor:pointer;transition:background .15s,color .15s}
+    .tab-btn.active{background:var(--bg3);color:var(--slate1);font-weight:600}
 
-    /* ── LOGIN SCREEN ── */
-    .login-screen {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
-    }
+    /* DASHBOARD */
+    .dashboard{display:none}
+    .nav{position:sticky;top:0;z-index:100;background:rgba(6,11,20,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;justify-content:space-between}
+    .nav-brand{font-family:var(--display);font-size:16px;font-weight:700;color:var(--slate1);display:flex;align-items:center;gap:8px;text-decoration:none}
+    .nav-brand span{color:var(--amber)}
+    .nav-right{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+    .badge{font-family:var(--mono);font-size:10px;letter-spacing:.1em;padding:3px 9px;border-radius:4px;background:var(--bg2);border:1px solid var(--border);color:var(--amber);text-transform:uppercase}
+    .badge.shadow{color:var(--purple);border-color:var(--purple)}
+    .nav-email{font-size:12px;color:var(--slate3)}
+    .btn-sm{background:none;border:1px solid var(--border);border-radius:6px;color:var(--slate3);font-size:12px;font-family:var(--mono);padding:5px 10px;cursor:pointer;transition:color .15s,border-color .15s}
+    .btn-sm:hover{color:var(--slate1);border-color:var(--slate3)}
+    .btn-sm.amber:hover{color:var(--amber);border-color:var(--amber)}
+    .main{max-width:1140px;margin:0 auto;padding:26px 18px 60px}
 
-    .login-card {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 48px 40px;
-      width: 100%;
-      max-width: 420px;
-      text-align: center;
-    }
+    /* SETUP BANNER */
+    .setup-banner{background:linear-gradient(135deg,#1a1200,#0d1526);border:1px solid var(--amber);border-radius:10px;padding:18px 22px;margin-bottom:22px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+    .setup-banner h3{font-family:var(--display);font-size:14px;font-weight:600;color:var(--amber);margin-bottom:3px}
+    .setup-banner p{font-size:12px;color:var(--slate3)}
+    .btn-setup{background:var(--amber);color:#000;border:none;border-radius:6px;font-family:var(--display);font-size:13px;font-weight:700;padding:8px 16px;cursor:pointer;white-space:nowrap}
 
-    .login-icon { font-size: 48px; margin-bottom: 20px; }
-
-    .login-title {
-      font-family: var(--display);
-      font-size: 26px;
-      font-weight: 700;
-      color: var(--slate1);
-      margin-bottom: 8px;
-    }
-
-    .login-sub { font-size: 14px; color: var(--slate3); margin-bottom: 32px; line-height: 1.6; }
-
-    .input-label { display: block; font-size: 12px; color: var(--slate3); text-align: left; margin-bottom: 6px; font-family: var(--mono); letter-spacing: 0.08em; }
-
-    .key-input {
-      width: 100%;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      color: var(--slate1);
-      font-family: var(--mono);
-      font-size: 14px;
-      padding: 12px 14px;
-      outline: none;
-      transition: border-color 0.2s;
-      margin-bottom: 16px;
-    }
-
-    .key-input:focus { border-color: var(--amber); }
-    .key-input::placeholder { color: var(--slate3); }
-
-    .btn-login {
-      width: 100%;
-      background: var(--amber);
-      color: #000;
-      border: none;
-      border-radius: 8px;
-      font-family: var(--display);
-      font-size: 15px;
-      font-weight: 700;
-      padding: 13px;
-      cursor: pointer;
-      transition: opacity 0.15s;
-    }
-
-    .btn-login:hover { opacity: 0.88; }
-    .btn-login:disabled { opacity: 0.5; cursor: not-allowed; }
-
-    .login-error {
-      margin-top: 12px;
-      font-size: 13px;
-      color: var(--red);
-      font-family: var(--mono);
-    }
-
-    /* ── DASHBOARD ── */
-    .dashboard { display: none; }
-
-    /* NAV */
-    .nav {
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      background: rgba(6,11,20,0.92);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--border);
-      padding: 14px 32px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .nav-brand {
-      font-family: var(--display);
-      font-size: 17px;
-      font-weight: 700;
-      color: var(--slate1);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .nav-brand span { color: var(--amber); }
-
-    .nav-right { display: flex; align-items: center; gap: 16px; }
-
-    .nav-plan {
-      font-family: var(--mono);
-      font-size: 11px;
-      letter-spacing: 0.1em;
-      padding: 4px 10px;
-      border-radius: 4px;
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      color: var(--amber);
-      text-transform: uppercase;
-    }
-
-    .nav-email { font-size: 13px; color: var(--slate3); }
-
-    .btn-logout {
-      background: none;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      color: var(--slate3);
-      font-size: 12px;
-      font-family: var(--mono);
-      padding: 5px 10px;
-      cursor: pointer;
-      transition: color 0.15s, border-color 0.15s;
-    }
-
-    .btn-logout:hover { color: var(--slate1); border-color: var(--slate3); }
-
-    /* MAIN CONTENT */
-    .main { max-width: 1100px; margin: 0 auto; padding: 32px 24px 64px; }
-
-    .page-title {
-      font-family: var(--display);
-      font-size: 22px;
-      font-weight: 700;
-      color: var(--slate1);
-      margin-bottom: 4px;
-    }
-
-    .page-sub { font-size: 13px; color: var(--slate3); margin-bottom: 32px; }
-
-    /* STAT CARDS */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 16px;
-      margin-bottom: 28px;
-    }
-
-    .stat-card {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 20px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .stat-card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 2px;
-    }
-
-    .stat-card.amber::before { background: var(--amber); }
-    .stat-card.green::before  { background: var(--green); }
-    .stat-card.red::before    { background: var(--red); }
-    .stat-card.blue::before   { background: var(--blue); }
-
-    .stat-label {
-      font-family: var(--mono);
-      font-size: 10px;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--slate3);
-      margin-bottom: 10px;
-    }
-
-    .stat-value {
-      font-family: var(--display);
-      font-size: 32px;
-      font-weight: 700;
-      color: var(--slate1);
-      line-height: 1;
-      margin-bottom: 4px;
-    }
-
-    .stat-value.amber { color: var(--amber); }
-    .stat-value.green { color: var(--green); }
-    .stat-value.red   { color: var(--red); }
-    .stat-value.blue  { color: var(--blue); }
-
-    .stat-sub { font-size: 12px; color: var(--slate3); }
+    /* STATS */
+    .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:13px;margin-bottom:22px}
+    .stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:17px;position:relative;overflow:hidden}
+    .stat-card::before{content:"";position:absolute;top:0;left:0;right:0;height:2px}
+    .stat-card.c-amber::before{background:var(--amber)}
+    .stat-card.c-green::before{background:var(--green)}
+    .stat-card.c-red::before{background:var(--red)}
+    .stat-card.c-blue::before{background:var(--blue)}
+    .stat-card.c-purple::before{background:var(--purple)}
+    .stat-label{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--slate3);margin-bottom:7px}
+    .stat-val{font-family:var(--display);font-size:28px;font-weight:700;line-height:1;margin-bottom:3px}
+    .stat-val.amber{color:var(--amber)}.stat-val.green{color:var(--green)}.stat-val.red{color:var(--red)}.stat-val.blue{color:var(--blue)}.stat-val.purple{color:var(--purple)}
+    .stat-sub{font-size:11px;color:var(--slate3)}
 
     /* TWO COL */
-    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 28px; }
-    @media (max-width: 700px) { .two-col { grid-template-columns: 1fr; } }
+    .two-col{display:grid;grid-template-columns:1fr 1fr;gap:17px;margin-bottom:22px}
+    @media(max-width:720px){.two-col{grid-template-columns:1fr}}
+    .panel{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:19px}
+    .panel-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px}
+    .panel-title{font-family:var(--display);font-size:14px;font-weight:600;color:var(--slate1)}
+    .panel-eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--slate3)}
 
-    /* PANELS */
-    .panel {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 22px;
-    }
+    /* USAGE */
+    .usage-row{display:flex;justify-content:space-between;margin-bottom:5px;font-size:12px}
+    .usage-pct{font-family:var(--mono);color:var(--amber)}
+    .bar-bg{height:5px;background:var(--bg3);border-radius:3px;overflow:hidden;margin-bottom:7px}
+    .bar-fill{height:100%;background:var(--amber);border-radius:3px;transition:width .8s ease}
+    .bar-fill.danger{background:var(--red)}
 
-    .panel-title {
-      font-family: var(--display);
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--slate1);
-      margin-bottom: 18px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
+    /* BREAKDOWN */
+    .bk-item{margin-bottom:9px}
+    .bk-row{display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px}
+    .bk-name{color:var(--slate2)}.bk-count{font-family:var(--mono);color:var(--slate3)}
+    .bk-bar{height:4px;background:var(--bg3);border-radius:2px}
+    .bk-fill{height:100%;border-radius:2px;transition:width .8s}
 
-    .panel-label {
-      font-family: var(--mono);
-      font-size: 10px;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--slate3);
-    }
+    /* KEYS */
+    .key-row{display:flex;align-items:center;gap:9px;padding:9px 0;border-bottom:1px solid var(--border);flex-wrap:wrap}
+    .key-row:last-child{border-bottom:none}
+    .key-label-badge{font-family:var(--mono);font-size:10px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:2px 8px;color:var(--slate2);white-space:nowrap}
+    .key-masked{font-family:var(--mono);font-size:12px;color:var(--slate3);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .btn-danger{background:none;border:1px solid var(--red);border-radius:5px;color:var(--red);font-size:11px;font-family:var(--mono);padding:3px 8px;cursor:pointer;transition:background .15s;white-space:nowrap}
+    .btn-danger:hover{background:#7f1d1d33}
+    .btn-gen{background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--slate2);font-size:12px;font-family:var(--mono);padding:7px 12px;cursor:pointer;transition:color .15s,border-color .15s;margin-top:11px;width:100%}
+    .btn-gen:hover{color:var(--amber);border-color:var(--amber)}
 
-    /* USAGE BAR */
-    .usage-wrap { margin-bottom: 14px; }
-    .usage-row { display: flex; justify-content: space-between; margin-bottom: 6px; }
-    .usage-text { font-size: 13px; color: var(--slate2); }
-    .usage-pct  { font-family: var(--mono); font-size: 13px; color: var(--amber); }
-    .usage-bar-bg { height: 6px; background: var(--bg3); border-radius: 3px; overflow: hidden; }
-    .usage-bar-fill { height: 100%; background: var(--amber); border-radius: 3px; transition: width 0.8s ease; }
-    .usage-bar-fill.danger { background: var(--red); }
+    /* SHADOW TOGGLE */
+    .toggle-row{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--border)}
+    .toggle-row:last-child{border-bottom:none}
+    .toggle-info h4{font-size:13px;font-weight:600;color:var(--slate1);margin-bottom:2px}
+    .toggle-info p{font-size:11px;color:var(--slate3);line-height:1.5}
+    .toggle-switch{position:relative;width:42px;height:24px;flex-shrink:0}
+    .toggle-switch input{opacity:0;width:0;height:0}
+    .toggle-slider{position:absolute;inset:0;background:var(--bg3);border:1px solid var(--border);border-radius:24px;cursor:pointer;transition:background .2s}
+    .toggle-slider:before{content:"";position:absolute;width:16px;height:16px;left:3px;top:3px;background:var(--slate3);border-radius:50%;transition:transform .2s,background .2s}
+    input:checked+.toggle-slider{background:#2d1a6e;border-color:var(--purple)}
+    input:checked+.toggle-slider:before{transform:translateX(18px);background:var(--purple)}
 
-    /* ATTACK BREAKDOWN */
-    .breakdown-list { display: flex; flex-direction: column; gap: 10px; }
-
-    .breakdown-item { display: flex; flex-direction: column; gap: 4px; }
-
-    .breakdown-row { display: flex; justify-content: space-between; align-items: center; }
-    .breakdown-name { font-size: 12px; color: var(--slate2); }
-    .breakdown-count { font-family: var(--mono); font-size: 12px; color: var(--slate3); }
-    .breakdown-bar-bg { height: 4px; background: var(--bg3); border-radius: 2px; overflow: hidden; }
-    .breakdown-bar-fill { height: 100%; border-radius: 2px; transition: width 0.8s ease; }
+    /* LOG */
+    .log-section{margin-bottom:22px}
+    .log-tabs{display:flex;gap:0;border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:14px;width:fit-content}
+    .log-tab{padding:8px 18px;background:none;border:none;color:var(--slate3);font-family:var(--sans);font-size:13px;cursor:pointer;transition:background .15s,color .15s;display:flex;align-items:center;gap:7px}
+    .log-tab.active{background:var(--bg2);color:var(--slate1);font-weight:600}
+    .log-tab .count{font-family:var(--mono);font-size:10px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:1px 7px}
+    .log-tab.active .count.red{background:#7f1d1d33;color:var(--red);border-color:#ef444433}
+    .log-tab.active .count.green{background:#14532d33;color:var(--green);border-color:#22c55e33}
+    .log-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+    .log-hd{display:flex;justify-content:space-between;align-items:center;padding:14px 18px 12px;border-bottom:1px solid var(--border)}
+    .log-scroll{max-height:420px;overflow-y:auto}
+    .log-scroll::-webkit-scrollbar{width:3px}
+    .log-scroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+    .log-entry{padding:11px 18px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .12s}
+    .log-entry:last-child{border-bottom:none}
+    .log-entry:hover{background:var(--bg3)}
+    .log-entry-top{display:grid;grid-template-columns:120px 72px 1fr auto;align-items:center;gap:10px}
+    .log-time{font-family:var(--mono);font-size:10px;color:var(--slate3)}
+    .log-badge{font-family:var(--mono);font-size:10px;font-weight:700;padding:3px 7px;border-radius:4px;text-align:center;letter-spacing:.05em;white-space:nowrap}
+    .log-badge.passed{background:#14532d44;color:var(--green);border:1px solid #22c55e33}
+    .log-badge.blocked{background:#7f1d1d44;color:var(--red);border:1px solid #ef444433}
+    .log-badge.shadow{background:#2d1a6e44;color:var(--purple);border:1px solid #a78bfa33}
+    .log-msg{font-family:var(--mono);font-size:11px;color:var(--slate3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .log-lat{font-family:var(--mono);font-size:10px;color:var(--slate3);white-space:nowrap}
+    .log-detail{display:none;padding:9px 0 3px}
+    .log-detail.open{display:block}
+    .log-meta{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:7px}
+    .log-chip{font-family:var(--mono);font-size:10px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:3px 8px;color:var(--slate3)}
+    .log-chip span{color:var(--slate2)}
+    .log-reason-text{font-size:12px;color:var(--slate2);margin-bottom:8px}
+    .btn-fp{background:none;border:1px solid var(--amber);border-radius:5px;color:var(--amber);font-size:11px;font-family:var(--mono);padding:4px 10px;cursor:pointer;transition:background .15s}
+    .btn-fp:hover{background:#1a120033}
+    .btn-fp.done{border-color:var(--green);color:var(--green);cursor:default}
+    .log-empty{padding:40px;text-align:center;font-family:var(--mono);font-size:12px;color:var(--border)}
 
     /* ACCOUNT */
-    .account-list { display: flex; flex-direction: column; gap: 12px; }
+    .acc-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)}
+    .acc-row:last-child{border-bottom:none}
+    .acc-lbl{font-size:12px;color:var(--slate3)}
+    .acc-val{font-family:var(--mono);font-size:12px;color:var(--slate2)}
+    .acc-val.amber{color:var(--amber)}.acc-val.green{color:var(--green)}
 
-    .account-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding-bottom: 12px;
-      border-bottom: 1px solid var(--border);
-    }
+    /* MODALS */
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:300;align-items:center;justify-content:center;padding:20px;overflow-y:auto}
+    .modal-overlay.open{display:flex}
+    .modal{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:32px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto}
+    .modal-title{font-family:var(--display);font-size:18px;font-weight:700;color:var(--slate1);margin-bottom:5px}
+    .modal-sub{font-size:13px;color:var(--slate3);margin-bottom:22px;line-height:1.6}
+    .modal-footer{display:flex;gap:10px;margin-top:16px}
+    .btn-cancel{flex:1;background:none;border:1px solid var(--border);border-radius:7px;color:var(--slate3);font-size:14px;padding:10px;cursor:pointer}
 
-    .account-row:last-child { border-bottom: none; padding-bottom: 0; }
+    /* MANUAL */
+    .manual-section{margin-bottom:24px}
+    .manual-section h3{font-family:var(--display);font-size:15px;font-weight:600;color:var(--amber);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+    .manual-section h4{font-size:13px;font-weight:600;color:var(--slate1);margin:12px 0 5px}
+    .manual-section p{font-size:13px;color:var(--slate2);line-height:1.7;margin-bottom:8px}
+    .manual-section ul{padding-left:18px;margin-bottom:8px}
+    .manual-section li{font-size:13px;color:var(--slate2);line-height:1.7;margin-bottom:4px}
+    .plan-chip{display:inline-block;font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:4px;margin-right:4px;font-weight:700}
+    .plan-chip.starter{background:#0d1526;color:var(--slate2);border:1px solid var(--border)}
+    .plan-chip.pro{background:#1a1200;color:var(--amber);border:1px solid var(--amber)}
+    .plan-chip.biz{background:#1a0a2e;color:var(--purple);border:1px solid var(--purple)}
+    .code-snip{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:12px;font-family:var(--mono);font-size:11px;color:#86efac;margin:8px 0;overflow-x:auto}
 
-    .account-key-label { font-size: 13px; color: var(--slate3); }
-    .account-val { font-family: var(--mono); font-size: 12px; color: var(--slate2); }
-    .account-val.amber { color: var(--amber); }
-    .account-val.green { color: var(--green); }
+    /* FOOTER */
+    .footer-brand{display:flex;align-items:center;justify-content:center;gap:10px;padding:32px 0 16px;border-top:1px solid var(--border);margin-top:32px}
+    .footer-brand img{width:32px;height:53px;object-fit:cover;border-radius:4px}
+    .footer-brand-text{font-size:12px;color:var(--slate3);font-family:var(--display)}
+    .footer-brand-text strong{color:var(--slate2)}
 
-    .key-display {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
 
-    .key-masked { font-family: var(--mono); font-size: 12px; color: var(--slate2); }
-
-    .btn-copy {
-      background: none;
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      color: var(--slate3);
-      font-size: 10px;
-      font-family: var(--mono);
-      padding: 3px 7px;
-      cursor: pointer;
-      transition: color 0.15s;
-    }
-
-    .btn-copy:hover { color: var(--amber); border-color: var(--amber); }
-
-    /* LOG TABLE */
-    .log-wrap {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      overflow: hidden;
-    }
-
-    .log-header-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 18px 22px 14px;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .log-scroll { max-height: 360px; overflow-y: auto; }
-    .log-scroll::-webkit-scrollbar { width: 3px; }
-    .log-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-    .log-entry {
-      display: grid;
-      grid-template-columns: 140px 60px 1fr;
-      align-items: center;
-      gap: 16px;
-      padding: 12px 22px;
-      border-bottom: 1px solid var(--border);
-      transition: background 0.15s;
-    }
-
-    .log-entry:last-child { border-bottom: none; }
-    .log-entry:hover { background: var(--bg3); }
-
-    .log-time { font-family: var(--mono); font-size: 11px; color: var(--slate3); }
-
-    .log-badge {
-      font-family: var(--mono);
-      font-size: 10px;
-      font-weight: 700;
-      padding: 3px 7px;
-      border-radius: 4px;
-      text-align: center;
-      letter-spacing: 0.06em;
-    }
-
-    .log-badge.passed { background: #14532d44; color: var(--green); border: 1px solid #22c55e33; }
-    .log-badge.blocked { background: #7f1d1d44; color: var(--red); border: 1px solid #ef444433; }
-
-    .log-msg { font-family: var(--mono); font-size: 11px; color: var(--slate3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .log-reason { font-size: 11px; color: var(--slate3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-    .log-empty {
-      padding: 48px;
-      text-align: center;
-      font-family: var(--mono);
-      font-size: 12px;
-      color: var(--border);
-    }
-
-    /* REFRESH */
-    .btn-refresh {
-      background: none;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      color: var(--slate3);
-      font-size: 12px;
-      font-family: var(--mono);
-      padding: 5px 10px;
-      cursor: pointer;
-      transition: color 0.15s;
-    }
-
-    .btn-refresh:hover { color: var(--amber); border-color: var(--amber); }
-
-    /* LOADING */
-    .loading {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 48px;
-      gap: 10px;
-      font-family: var(--mono);
-      font-size: 13px;
-      color: var(--slate3);
-    }
-
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .spinner { width: 16px; height: 16px; border: 2px solid var(--border); border-top-color: var(--amber); border-radius: 50%; animation: spin 0.8s linear infinite; }
-
-    @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
-    .fade-in { animation: fadeUp 0.4s ease both; }
+    /* BILLING WIDGET */
+    .billing-widget{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:19px;margin-bottom:17px}
+    .overage-meter{background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:12px;margin:12px 0;font-family:var(--mono);font-size:12px}
+    .overage-zero{color:var(--green)}.overage-active{color:var(--red)}
+    .tooltip-wrap{position:relative;display:inline-block}
+    .tooltip-wrap .tip{visibility:hidden;opacity:0;position:absolute;bottom:130%;left:50%;transform:translateX(-50%);background:#1e293b;color:#94a3b8;font-size:11px;padding:7px 10px;border-radius:6px;width:220px;line-height:1.5;transition:opacity .2s;z-index:99}
+    .tooltip-wrap:hover .tip{visibility:visible;opacity:1}
+    .cancel-link{background:none;border:none;color:var(--slate3);font-size:12px;cursor:pointer;text-decoration:underline;margin-top:10px;display:block}
+    .cancel-link:hover{color:var(--red)}
+    /* MISC */
+    @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+    .fade-in{animation:fadeUp .35s ease both}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .spinner{width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--amber);border-radius:50%;animation:spin .7s linear infinite;display:inline-block;vertical-align:middle;margin-right:6px}
+    .pro-lock{font-size:10px;color:var(--slate3);font-family:var(--mono)}
+    .dropped{display:none}
   </style>
+  <!-- Crisp Chat -->
+  <script>
+    window.$crisp=[];window.CRISP_WEBSITE_ID="db47938a-0e80-4233-a6d6-a3cb07c6986b";
+    (function(){var d=document,s=d.createElement("script");s.src="https://client.crisp.chat/l.js";s.async=1;d.getElementsByTagName("head")[0].appendChild(s);})();
+  </script>
 </head>
 <body>
 
-<!-- LOGIN -->
-<div class="login-screen" id="loginScreen">
-  <div class="login-card">
-    <div class="login-icon">🛡️</div>
-    <div class="login-title">Prompt Firewall</div>
-    <p class="login-sub">Enter your API key to view your security dashboard.</p>
-    <label class="input-label">YOUR API KEY</label>
-    <input class="key-input" id="keyInput" type="password" placeholder="pf_xxxxxxxxxxxxxxxxxxxx" autocomplete="off" />
-    <button class="btn-login" id="loginBtn" onclick="login()">View Dashboard</button>
-    <div class="login-error" id="loginError"></div>
-    <div style="margin-top:20px;">
-      <button onclick="showForgot()" style="background:none;border:none;color:var(--slate3);font-size:13px;cursor:pointer;text-decoration:underline;">Forgot your API key?</button>
+<!-- LOGIN SCREEN -->
+<div class="auth-screen" id="loginScreen">
+  <div class="auth-card">
+    <div class="auth-logo">🛡️</div>
+    <div class="auth-title">Prompt Firewall</div>
+    <p class="auth-sub">Sign in to your security dashboard.</p>
+    <div class="tab-row">
+      <button class="tab-btn active" id="tabPwd" onclick="switchTab('pwd')">Email & Password</button>
+      <button class="tab-btn" id="tabKey" onclick="switchTab('key')">First Time Login</button>
+    </div>
+    <div id="formPwd">
+      <label class="field-label">EMAIL ADDRESS</label>
+      <input class="field" id="pwdEmail" type="email" placeholder="you@company.com" />
+      <label class="field-label">PASSWORD</label>
+      <input class="field" id="pwdPassword" type="password" placeholder="••••••••" />
+      <button class="btn-primary" id="btnPwd" onclick="loginPwd()">Sign In</button>
+      <div style="text-align:center;margin-top:13px">
+        <button class="auth-link" onclick="showForgot()">Forgot password?</button>
+      </div>
+    </div>
+    <div id="formKey" style="display:none">
+      <label class="field-label">EMAIL ADDRESS</label>
+      <input class="field" id="keyEmail" type="email" placeholder="you@company.com" />
+      <label class="field-label">API KEY (from your welcome email)</label>
+      <input class="field" id="keyVal" type="password" placeholder="pf_••••••••••••••••••••••••••••••" />
+      <button class="btn-primary" id="btnKey" onclick="loginKey()">View Dashboard</button>
+    </div>
+    <div id="loginError" class="auth-error"></div>
+    <div style="text-align:center;margin-top:14px">
+      <a href="index.html" style="font-size:12px;color:var(--slate3);text-decoration:none">← Back to home</a>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;opacity:.5">
+    <img src="data:image/jpeg;base64,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" style="width:24px;height:40px;object-fit:cover;border-radius:3px" alt="Invenova" />
+    <span style="font-size:12px;color:var(--slate3);font-family:var(--display)">Brought to you by <strong style="color:var(--slate2)">Invenova</strong></span>
+  </div>
+</div>
+
+<!-- FORGOT PASSWORD -->
+<div class="auth-screen" id="forgotScreen" style="display:none">
+  <div class="auth-card">
+    <div class="auth-logo">📧</div>
+    <div class="auth-title">Reset Password</div>
+    <p class="auth-sub">Enter your email and we'll send a reset link to your inbox. The link expires in 1 hour.</p>
+    <label class="field-label">EMAIL ADDRESS</label>
+    <input class="field" id="forgotEmail" type="email" placeholder="you@company.com" />
+    <button class="btn-primary" id="btnForgot" onclick="sendReset()">Send Reset Link</button>
+    <div id="forgotMsg" class="auth-success" style="display:none"></div>
+    <div style="text-align:center;margin-top:13px">
+      <button class="auth-link" onclick="showLogin()">← Back to login</button>
     </div>
   </div>
 </div>
 
-<!-- FORGOT KEY MODAL -->
-<div id="forgotModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;align-items:center;justify-content:center;padding:24px;">
-  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:40px;width:100%;max-width:400px;text-align:center;">
-    <div style="font-size:32px;margin-bottom:16px;">📧</div>
-    <div style="font-family:var(--display);font-size:20px;font-weight:700;color:var(--slate1);margin-bottom:8px;">Resend your API key</div>
-    <p style="font-size:13px;color:var(--slate3);margin-bottom:24px;line-height:1.6;">Enter the email you used to subscribe and we'll resend your key instantly.</p>
-    <label class="input-label">YOUR EMAIL</label>
-    <input id="forgotEmail" type="email" class="key-input" placeholder="you@example.com" />
-    <button onclick="resendKey()" class="btn-login" id="resendBtn">Send my key</button>
-    <div id="resendMsg" style="margin-top:12px;font-size:13px;font-family:var(--mono);"></div>
-    <button onclick="hideForgot()" style="margin-top:16px;background:none;border:none;color:var(--slate3);font-size:13px;cursor:pointer;">← Back to login</button>
+<!-- RESET PASSWORD -->
+<div class="auth-screen" id="resetScreen" style="display:none">
+  <div class="auth-card">
+    <div class="auth-logo">🔐</div>
+    <div class="auth-title">Create New Password</div>
+    <p class="auth-sub">Choose a strong password for your Prompt Firewall account.</p>
+    <label class="field-label">NEW PASSWORD</label>
+    <input class="field" id="resetPwd1" type="password" placeholder="Minimum 8 characters" />
+    <label class="field-label">CONFIRM PASSWORD</label>
+    <input class="field" id="resetPwd2" type="password" placeholder="Repeat password" />
+    <button class="btn-primary" id="btnReset" onclick="doReset()">Set New Password</button>
+    <div id="resetMsg" class="auth-error"></div>
+  </div>
+</div>
+
+<!-- SET PASSWORD MODAL -->
+<div class="modal-overlay" id="setPwdModal">
+  <div class="modal">
+    <div class="modal-title">🔐 Set your password</div>
+    <p class="modal-sub">Create a password so you can log in with your email next time — no API key needed.</p>
+    <label class="field-label">NEW PASSWORD</label>
+    <input class="field" id="newPwd1" type="password" placeholder="Minimum 8 characters" />
+    <label class="field-label">CONFIRM PASSWORD</label>
+    <input class="field" id="newPwd2" type="password" placeholder="Repeat password" />
+    <div id="setPwdMsg" class="auth-error"></div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closePwdModal()">Skip for now</button>
+      <button class="btn-primary" style="flex:1" onclick="doSetPassword()">Save Password</button>
+    </div>
+  </div>
+</div>
+
+<!-- GENERATE KEY MODAL -->
+<div class="modal-overlay" id="genKeyModal">
+  <div class="modal">
+    <div class="modal-title">Generate New API Key</div>
+    <p class="modal-sub">Give this key a label so you know which app or team member it belongs to (e.g. "Production Bot", "Staging", "Mobile App").</p>
+    <label class="field-label">KEY LABEL</label>
+    <input class="field" id="genKeyLabel" type="text" placeholder="e.g. Production Bot" />
+    <div id="genKeyResult" style="display:none;margin-bottom:12px">
+      <div style="background:var(--bg);border:1px solid var(--amber);border-radius:7px;padding:14px">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--slate3);margin-bottom:6px">YOUR NEW KEY — COPY NOW, IT WON'T SHOW AGAIN</div>
+        <div id="genKeyValue" style="font-family:var(--mono);font-size:13px;color:var(--amber);word-break:break-all"></div>
+      </div>
+      <button class="btn-sm amber" style="margin-top:8px;width:100%" onclick="copyNewKey()">Copy Key</button>
+    </div>
+    <div id="genKeyMsg" class="auth-error"></div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeGenModal()">Close</button>
+      <button class="btn-primary" style="flex:1" id="btnGenKey" onclick="generateKey()">Generate Key</button>
+    </div>
+  </div>
+</div>
+
+<!-- USER MANUAL MODAL -->
+<div class="modal-overlay" id="manualModal">
+  <div class="modal" style="max-width:640px">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px">
+      <div>
+        <div class="modal-title">📖 User Manual</div>
+        <p style="font-size:13px;color:var(--slate3);margin-top:4px">Everything you need to get the most out of Prompt Firewall.</p>
+      </div>
+      <button class="btn-sm" onclick="closeManual()" style="flex-shrink:0;margin-left:16px">✕ Close</button>
+    </div>
+
+    <div class="manual-section">
+      <h3>🚀 Getting Started (All Plans)</h3>
+      <p>Welcome! Here is how to protect your AI chatbot in 3 steps.</p>
+      <h4>Step 1 — Find your API key</h4>
+      <p>When you subscribed, we sent an email to your inbox with a key that looks like <code style="font-family:var(--mono);font-size:12px;color:var(--amber)">pf_abc...xyz</code>. Keep this safe — it is your access token.</p>
+      <h4>Step 2 — Add 5 lines to your code</h4>
+      <p>Before every message reaches your AI, send it to Prompt Firewall first:</p>
+      <div class="code-snip">import requests
+
+def is_safe(user_message):
+    r = requests.post(
+        "https://prompt-firewall-production.up.railway.app/analyze",
+        headers={"X-API-Key": "YOUR-KEY-HERE"},
+        json={"message": user_message}
+    )
+    return r.json()["status"] == "PASSED"
+
+# In your chatbot:
+if is_safe(user_input):
+    reply = ask_your_ai(user_input)
+else:
+    reply = "Sorry, I cannot process that request."</div>
+      <h4>Step 3 — Watch your dashboard</h4>
+      <p>Come back here to see what your firewall has blocked. Every blocked attack appears in your Security Log below.</p>
+    </div>
+
+    <div class="manual-section">
+      <h3><span class="plan-chip starter">STARTER</span> Starter Plan Guide</h3>
+      <p>You have access to 10,000 request screenings per month and 1 API key.</p>
+      <h4>What you can do</h4>
+      <ul>
+        <li>Screen messages with a single API key</li>
+        <li>View your Security Log — all BLOCKED and PASSED events</li>
+        <li>See your monthly usage in the dashboard</li>
+        <li>Set a password to make future logins easier</li>
+      </ul>
+      <h4>Reading your Security Log</h4>
+      <p>Click the <strong>Blocked</strong> tab to see attacks — this is your main view. Click any row to expand it and see the full details including the reason it was blocked. Click <strong>Passed</strong> to see safe messages that went through.</p>
+      <h4>Running out of requests?</h4>
+      <p>Your usage bar shows how much of your monthly 10,000 requests you have used. When it turns red you are close to the limit. Upgrade to Pro to get 100,000 requests.</p>
+    </div>
+
+    <div class="manual-section">
+      <h3><span class="plan-chip pro">PRO</span> Pro Plan Guide</h3>
+      <p>Everything in Starter plus 100,000 requests, up to 3 API keys, false positive reporting, and Shadow Mode.</p>
+      <h4>Multiple API Keys</h4>
+      <p>If you have more than one chatbot or team member, generate separate keys for each one. Click <strong>Generate New Key</strong> in the API Keys panel, give it a label like "Production Bot", and share that key with the relevant developer. You can revoke any key instantly if it is ever leaked.</p>
+      <h4>False Positive Button</h4>
+      <p>Sometimes the firewall may block a harmless message by mistake — this is called a false positive. Expand the log entry and click <strong>Mark as false positive</strong>. This sends the sample to our team so we can improve the rules.</p>
+      <h4>Shadow Mode</h4>
+      <p>Enable Shadow Mode in the Settings panel to put the firewall into <strong>monitoring-only</strong> mode. Attacks are still logged but nothing is blocked. This is useful when you are testing new rules or onboarding a new chatbot and want to observe without disrupting users.</p>
+      <h4>API Key Labels in the Log</h4>
+      <p>Each log entry shows which API key was used. This helps you see if attacks are targeting a specific app or environment.</p>
+    </div>
+
+    <div class="manual-section">
+      <h3><span class="plan-chip biz">BUSINESS</span> Business Plan Guide</h3>
+      <p>Everything in Pro plus unlimited requests, unlimited API keys, and full team management.</p>
+      <h4>Unlimited Keys for Your Team</h4>
+      <p>Generate as many API keys as you need — one per developer, one per product, one per environment. Each key has its own label and can be revoked individually without affecting the others.</p>
+      <h4>Tracking Which App Is Under Attack</h4>
+      <p>Because each key has a label, your Security Log will show you exactly which product or environment is being targeted. If your mobile app key is getting hit with SQL injection but your web app is fine, you will see that immediately.</p>
+      <h4>User Identification</h4>
+      <p>Pass a <code style="font-family:var(--mono);font-size:11px;color:var(--amber)">user_id</code> field in your API request to track which of your end users is repeatedly attempting attacks:</p>
+      <div class="code-snip">json={"message": user_input, "user_id": "user_12345"}</div>
+      <p>This appears in your log so you can identify and ban repeat attackers.</p>
+      <h4>Target Model Tracking</h4>
+      <p>Pass a <code style="font-family:var(--mono);font-size:11px;color:var(--amber)">target_model</code> field to track which AI model the prompt was heading toward:</p>
+      <div class="code-snip">json={"message": user_input, "target_model": "gpt-4o"}</div>
+    </div>
+
+    <div class="manual-section">
+      <h3>❓ Common Questions</h3>
+      <h4>What happens if I go over my request limit?</h4>
+      <p>Requests over the limit return a 429 error. We email you before you hit the limit so you have time to upgrade.</p>
+      <h4>My key stopped working — what happened?</h4>
+      <p>Either your account was cancelled, your key was revoked (by you or an admin), or your subscription lapsed. Email <a href="mailto:info@invenova.tech" style="color:var(--amber)">info@invenova.tech</a> for help.</p>
+      <h4>The firewall blocked a message it shouldn't have</h4>
+      <p>Click the row in your Security Log, expand it, and click <strong>Mark as false positive</strong>. We will review and update the rules. (Pro and Business only.)</p>
+      <h4>Can I use this with any AI model?</h4>
+      <p>Yes — Prompt Firewall works with GPT-4, Claude, Gemini, Llama, or any other model. It is completely model-agnostic.</p>
+    </div>
+
+    <div style="text-align:center;padding-top:16px;border-top:1px solid var(--border)">
+      <a href="mailto:info@invenova.tech" style="font-size:13px;color:var(--amber);text-decoration:none">Need more help? Email info@invenova.tech →</a>
+    </div>
   </div>
 </div>
 
 <!-- DASHBOARD -->
 <div class="dashboard" id="dashboard">
-
   <nav class="nav">
-    <div class="nav-brand">🛡️ Prompt <span>Firewall</span></div>
+    <a class="nav-brand" href="index.html">🛡️ Prompt <span>Firewall</span></a>
     <div class="nav-right">
-      <a href="index.html" style="font-size:12px;color:var(--slate3);text-decoration:none;font-family:var(--mono);">← Home</a>
-      <span class="nav-plan" id="navPlan">starter</span>
+      <span class="badge" id="navPlan">STARTER</span>
+      <span class="badge shadow" id="shadowBadge" style="display:none">SHADOW MODE</span>
+      <button class="btn-sm amber" onclick="openManual()">📖 Manual</button>
       <span class="nav-email" id="navEmail"></span>
-      <button class="btn-logout" onclick="logout()">Sign out</button>
+      <button class="btn-sm" onclick="logout()">Sign out</button>
     </div>
   </nav>
-
   <div class="main" id="mainContent">
-    <div class="loading"><div class="spinner"></div> Loading your dashboard…</div>
+    <div style="padding:80px;text-align:center;color:var(--slate3);font-family:var(--mono)">
+      <div class="spinner"></div> Loading your dashboard…
+    </div>
   </div>
-
 </div>
 
 <script>
-  const API = "https://prompt-firewall-production.up.railway.app";
-  let currentKey = "";
-  let dashData = null;
+const API = "https://prompt-firewall-production.up.railway.app";
+let SESSION = {email:"",apiKey:"",plan:"starter",passwordSet:false};
+let DASH_DATA = null;
+let LOG_FILTER = "blocked"; // default: show blocked
 
-  // ── Forgot Key ─────────────────────────────────────────────────────────
-  function showForgot() {
-    document.getElementById("forgotModal").style.display = "flex";
-  }
+const urlParams = new URLSearchParams(window.location.search);
+const resetToken = urlParams.get("reset");
+if (resetToken) {
+  document.getElementById("loginScreen").style.display = "none";
+  document.getElementById("resetScreen").style.display = "flex";
+}
 
-  function hideForgot() {
-    document.getElementById("forgotModal").style.display = "none";
-    document.getElementById("forgotEmail").value = "";
-    document.getElementById("resendMsg").textContent = "";
-    document.getElementById("resendBtn").disabled = false;
-    document.getElementById("resendBtn").textContent = "Send my key";
-  }
+function switchTab(tab) {
+  document.getElementById("tabPwd").classList.toggle("active", tab==="pwd");
+  document.getElementById("tabKey").classList.toggle("active", tab==="key");
+  document.getElementById("formPwd").style.display = tab==="pwd" ? "block" : "none";
+  document.getElementById("formKey").style.display = tab==="key" ? "block" : "none";
+  document.getElementById("loginError").textContent = "";
+}
 
-  async function resendKey() {
-    const email = document.getElementById("forgotEmail").value.trim();
-    const btn = document.getElementById("resendBtn");
-    const msg = document.getElementById("resendMsg");
+async function loginPwd() {
+  const email = document.getElementById("pwdEmail").value.trim();
+  const password = document.getElementById("pwdPassword").value;
+  const btn = document.getElementById("btnPwd");
+  const err = document.getElementById("loginError");
+  if (!email || !password) { err.textContent = "Please fill in all fields."; return; }
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>Signing in…';
+  err.textContent = "";
+  try {
+    const res = await fetch(`${API}/auth/login`, {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({email, password})
+    });
+    const data = await res.json();
+    if (!res.ok) { err.textContent = data.detail || "Invalid credentials."; return; }
+    SESSION.email = email; SESSION.passwordSet = true;
+    await loadDashboard(email, null);
+  } catch(e) { err.textContent = "Connection error. Please try again."; }
+  finally { btn.disabled = false; btn.textContent = "Sign In"; }
+}
 
-    if (!email) { msg.style.color = "var(--red)"; msg.textContent = "Please enter your email."; return; }
+async function loginKey() {
+  const email = document.getElementById("keyEmail").value.trim();
+  const apiKey = document.getElementById("keyVal").value.trim();
+  const btn = document.getElementById("btnKey");
+  const err = document.getElementById("loginError");
+  if (!email || !apiKey) { err.textContent = "Please fill in all fields."; return; }
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>Checking…';
+  err.textContent = "";
+  try {
+    const res = await fetch(`${API}/auth/login`, {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({email, api_key: apiKey})
+    });
+    const data = await res.json();
+    if (!res.ok) { err.textContent = data.detail || "Invalid email or API key. Both must be correct."; return; }
+    SESSION.email = email; SESSION.apiKey = apiKey;
+    SESSION.passwordSet = !data.first_login;
+    await loadDashboard(email, apiKey);
+  } catch(e) { err.textContent = "Connection error. Please try again."; }
+  finally { btn.disabled = false; btn.textContent = "View Dashboard"; }
+}
 
-    btn.disabled = true;
-    btn.textContent = "Sending…";
-    msg.textContent = "";
+function showForgot() {
+  document.getElementById("loginScreen").style.display = "none";
+  document.getElementById("forgotScreen").style.display = "flex";
+}
 
-    try {
-      const res = await fetch(`${API}/resend-key?email=${encodeURIComponent(email)}`, {
-        method: "POST"
-      });
-      const data = await res.json();
-      msg.style.color = "var(--green)";
-      msg.textContent = "✓ " + data.message;
-      btn.textContent = "Sent!";
-    } catch (e) {
-      msg.style.color = "var(--red)";
-      msg.textContent = "Error. Please try again.";
-      btn.disabled = false;
-      btn.textContent = "Send my key";
+function showLogin() {
+  document.getElementById("forgotScreen").style.display = "none";
+  document.getElementById("resetScreen").style.display = "none";
+  document.getElementById("loginScreen").style.display = "flex";
+}
+
+async function sendReset() {
+  const email = document.getElementById("forgotEmail").value.trim();
+  const btn = document.getElementById("btnForgot");
+  const msg = document.getElementById("forgotMsg");
+  if (!email) return;
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>Sending…';
+  try {
+    await fetch(`${API}/auth/forgot-password`, {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({email})
+    });
+    msg.style.display = "block";
+    msg.textContent = "✓ If that email has an account, a reset link has been sent. Check your inbox.";
+    btn.textContent = "Sent!";
+  } catch(e) { btn.disabled = false; btn.textContent = "Send Reset Link"; }
+}
+
+async function doReset() {
+  const p1 = document.getElementById("resetPwd1").value;
+  const p2 = document.getElementById("resetPwd2").value;
+  const msg = document.getElementById("resetMsg");
+  const btn = document.getElementById("btnReset");
+  if (p1 !== p2) { msg.textContent = "Passwords don't match."; return; }
+  if (p1.length < 8) { msg.textContent = "Minimum 8 characters."; return; }
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>Saving…';
+  try {
+    const res = await fetch(`${API}/auth/reset-password`, {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({token: resetToken, password: p1})
+    });
+    const data = await res.json();
+    if (!res.ok) { msg.textContent = data.detail; btn.disabled=false; btn.textContent="Set New Password"; return; }
+    msg.style.color = "var(--green)";
+    msg.textContent = "✓ Password updated! Redirecting to login…";
+    setTimeout(() => { window.location.href = "dashboard.html"; }, 2000);
+  } catch(e) { msg.textContent = "Error. Please try again."; btn.disabled=false; btn.textContent="Set New Password"; }
+}
+
+async function loadDashboard(email, apiKey) {
+  document.getElementById("loginScreen").style.display = "none";
+  document.getElementById("dashboard").style.display = "block";
+  const keyToUse = apiKey || SESSION.apiKey;
+  try {
+    const res = await fetch(`${API}/my-log?email=${encodeURIComponent(email)}&limit=50`, {
+      headers:{"X-API-Key": keyToUse}
+    });
+    if (!res.ok) {
+      document.getElementById("loginScreen").style.display = "flex";
+      document.getElementById("dashboard").style.display = "none";
+      document.getElementById("loginError").textContent = "Session expired. Please log in again.";
+      return;
     }
+    const data = await res.json();
+    DASH_DATA = data;
+    SESSION.plan = data.account.plan;
+    pushCrispContext();
+    SESSION.passwordSet = data.account.password_set;
+    SESSION.apiKey = keyToUse;
+    renderDashboard(data);
+  } catch(e) {
+    document.getElementById("mainContent").innerHTML =
+      `<div style="padding:48px;text-align:center;color:var(--red);font-family:var(--mono)">Connection error. Please refresh.</div>`;
   }
+}
 
-  // ── Login ──────────────────────────────────────────────────────────────
-  async function login() {
-    const key = document.getElementById("keyInput").value.trim();
-    const btn = document.getElementById("loginBtn");
-    const err = document.getElementById("loginError");
+function renderDashboard(data) {
+  const acc = data.account, stats = data.stats, bk = data.attack_breakdown;
+  const evts = data.recent_events, keys = data.api_keys;
 
-    if (!key) { err.textContent = "Please enter your API key."; return; }
+  document.getElementById("navPlan").textContent = acc.plan.toUpperCase();
+  document.getElementById("navEmail").textContent = acc.email;
+  document.getElementById("shadowBadge").style.display = acc.shadow_mode ? "inline" : "none";
 
-    btn.disabled = true;
-    btn.textContent = "Checking…";
-    err.textContent = "";
+  const used = acc.requests_used, limit = acc.monthly_limit;
+  const pct = limit > 0 ? Math.min(100, Math.round((used/limit)*100)) : 0;
+  const catColors = {
+    "Prompt Injection":"#a78bfa","SQL Injection":"#ef4444",
+    "XSS":"#f59e0b","Command Injection":"#22c55e",
+    "Log4Shell / XXE":"#60a5fa","Obfuscation":"#f472b6"
+  };
+  const maxBk = Math.max(1, ...Object.values(bk));
+  const isPro = acc.plan === "pro" || acc.plan === "business";
 
-    try {
-      const res = await fetch(`${API}/my-log?limit=50`, {
-        headers: { "X-API-Key": key }
-      });
+  const blockedEvts = evts.filter(e => e.status === "BLOCKED" || e.status.includes("shadow"));
+  const passedEvts  = evts.filter(e => e.status === "PASSED");
 
-      if (res.status === 403) {
-        err.textContent = "Invalid API key. Check your email for the correct key.";
-        btn.disabled = false;
-        btn.textContent = "View Dashboard";
-        return;
-      }
-
-      const data = await res.json();
-      currentKey = key;
-      dashData = data;
-      showDashboard(data);
-
-    } catch (e) {
-      err.textContent = "Connection error. Please try again.";
-      btn.disabled = false;
-      btn.textContent = "View Dashboard";
-    }
-  }
-
-  document.getElementById("keyInput").addEventListener("keydown", e => {
-    if (e.key === "Enter") login();
-  });
-
-  // ── Logout ─────────────────────────────────────────────────────────────
-  function logout() {
-    currentKey = "";
-    dashData = null;
-    document.getElementById("dashboard").style.display = "none";
-    document.getElementById("loginScreen").style.display = "flex";
-    document.getElementById("keyInput").value = "";
-    document.getElementById("loginBtn").disabled = false;
-    document.getElementById("loginBtn").textContent = "View Dashboard";
-  }
-
-  // ── Show Dashboard ─────────────────────────────────────────────────────
-  function showDashboard(data) {
-    document.getElementById("loginScreen").style.display = "none";
-    document.getElementById("dashboard").style.display = "block";
-
-    const acc = data.account;
-    const stats = data.stats;
-    const breakdown = data.attack_breakdown;
-    const events = data.recent_events;
-
-    document.getElementById("navPlan").textContent = acc.plan.toUpperCase();
-    document.getElementById("navEmail").textContent = acc.email;
-
-    const used = acc.requests_used;
-    const limit = acc.monthly_limit;
-    const pct = limit > 0 ? Math.min(100, Math.round((used / limit) * 100)) : 0;
-    const remaining = acc.requests_remaining;
-
-    // Attack breakdown colors
-    const catColors = {
-      "Prompt Injection": "#a78bfa",
-      "SQL Injection":    "#ef4444",
-      "XSS":             "#f59e0b",
-      "Command Injection":"#22c55e",
-      "Log4Shell / XXE": "#60a5fa",
-      "Obfuscation":     "#f472b6",
-    };
-
-    const maxBreakdown = Math.max(1, ...Object.values(breakdown));
-
-    const memberDate = new Date(acc.member_since).toLocaleDateString("en-ZA", { year: "numeric", month: "long", day: "numeric" });
-
-    document.getElementById("mainContent").innerHTML = `
-      <div class="fade-in">
-        <div class="page-title">Security Dashboard</div>
-        <div class="page-sub">Welcome back — here's your firewall activity overview.</div>
-
-        <!-- STAT CARDS -->
-        <div class="stats-grid">
-          <div class="stat-card amber">
-            <div class="stat-label">Total Requests</div>
-            <div class="stat-value amber">${used.toLocaleString()}</div>
-            <div class="stat-sub">All time</div>
-          </div>
-          <div class="stat-card green">
-            <div class="stat-label">Passed</div>
-            <div class="stat-value green">${stats.passed.toLocaleString()}</div>
-            <div class="stat-sub">Safe messages forwarded</div>
-          </div>
-          <div class="stat-card red">
-            <div class="stat-label">Blocked</div>
-            <div class="stat-value red">${stats.blocked.toLocaleString()}</div>
-            <div class="stat-sub">Attacks stopped</div>
-          </div>
-          <div class="stat-card blue">
-            <div class="stat-label">Block Rate</div>
-            <div class="stat-value blue">${stats.block_rate}%</div>
-            <div class="stat-sub">Of all messages</div>
-          </div>
-        </div>
-
-        <!-- TWO COL -->
-        <div class="two-col">
-
-          <!-- Usage + Attack breakdown -->
-          <div style="display:flex;flex-direction:column;gap:20px;">
-
-            <div class="panel">
-              <div class="panel-title">Monthly Usage <span class="panel-label">${acc.plan} plan</span></div>
-              <div class="usage-wrap">
-                <div class="usage-row">
-                  <span class="usage-text">${used.toLocaleString()} used</span>
-                  <span class="usage-pct">${limit > 0 ? pct + "%" : "Unlimited"}</span>
-                </div>
-                <div class="usage-bar-bg">
-                  <div class="usage-bar-fill ${pct > 85 ? "danger" : ""}" style="width:${limit > 0 ? pct : 0}%"></div>
-                </div>
-                <div style="font-size:12px;color:var(--slate3);margin-top:8px;">
-                  ${limit > 0 ? `${typeof remaining === "number" ? remaining.toLocaleString() : remaining} requests remaining` : "Unlimited requests on Business plan"}
-                </div>
-              </div>
-            </div>
-
-            <div class="panel">
-              <div class="panel-title">Attack Breakdown</div>
-              <div class="breakdown-list">
-                ${Object.entries(breakdown).map(([name, count]) => `
-                  <div class="breakdown-item">
-                    <div class="breakdown-row">
-                      <span class="breakdown-name">${name}</span>
-                      <span class="breakdown-count">${count}</span>
-                    </div>
-                    <div class="breakdown-bar-bg">
-                      <div class="breakdown-bar-fill" style="width:${Math.round((count/maxBreakdown)*100)}%;background:${catColors[name] || "#94a3b8"}"></div>
-                    </div>
-                  </div>
-                `).join("")}
-              </div>
-            </div>
-
-          </div>
-
-          <!-- Account info -->
-          <div class="panel">
-            <div class="panel-title">Account</div>
-            <div class="account-list">
-              <div class="account-row">
-                <span class="account-key-label">Email</span>
-                <span class="account-val">${acc.email}</span>
-              </div>
-              <div class="account-row">
-                <span class="account-key-label">Plan</span>
-                <span class="account-val amber">${acc.plan.charAt(0).toUpperCase() + acc.plan.slice(1)}</span>
-              </div>
-              <div class="account-row">
-                <span class="account-key-label">Status</span>
-                <span class="account-val green">● Active</span>
-              </div>
-              <div class="account-row">
-                <span class="account-key-label">Member since</span>
-                <span class="account-val">${memberDate}</span>
-              </div>
-              <div class="account-row">
-                <span class="account-key-label">Monthly limit</span>
-                <span class="account-val">${limit > 0 ? limit.toLocaleString() + " requests" : "Unlimited"}</span>
-              </div>
-              <div class="account-row">
-                <span class="account-key-label">API Key</span>
-                <div class="key-display">
-                  <span class="key-masked" id="keyMasked">${currentKey.slice(0,6)}••••••••••••••••</span>
-                  <button class="btn-copy" onclick="copyKey()">Copy</button>
-                </div>
-              </div>
-              <div class="account-row">
-                <span class="account-key-label">API Endpoint</span>
-                <button class="btn-copy" onclick="copyEndpoint()">Copy URL</button>
-              </div>
-            </div>
-
-            <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);">
-              <div style="font-size:12px;color:var(--slate3);margin-bottom:10px;">Need help or want to upgrade?</div>
-              <div style="display:flex;gap:10px;flex-wrap:wrap;">
-                <a href="https://taupe-dusk-70c154.netlify.app/#pricing" target="_blank" style="display:inline-block;background:var(--amber);color:#000;font-family:var(--display);font-size:13px;font-weight:700;padding:8px 16px;border-radius:6px;text-decoration:none;">Upgrade Plan →</a>
-                <a href="mailto:info@invenova.tech" style="display:inline-block;font-size:13px;color:var(--slate2);text-decoration:none;padding:8px 0;">Contact support</a>
-              </div>
-            </div>
-          </div>
-
-        </div>
-
-        <!-- SECURITY LOG -->
-        <div class="log-wrap">
-          <div class="log-header-row">
-            <div class="panel-title" style="margin:0">Security Log <span class="panel-label" style="margin-left:10px;">last ${events.length} events</span></div>
-            <button class="btn-refresh" onclick="refresh()">↻ Refresh</button>
-          </div>
-          <div class="log-scroll">
-            ${events.length === 0
-              ? `<div class="log-empty">// no events yet — send your first request to see it here</div>`
-              : events.map(e => `
-                <div class="log-entry">
-                  <span class="log-time">${new Date(e.timestamp).toLocaleString("en-ZA", { month:"short", day:"numeric", hour:"2-digit", minute:"2-digit" })}</span>
-                  <span class="log-badge ${e.status.toLowerCase()}">${e.status}</span>
-                  <span class="log-msg" title="${e.reason}">${e.message_preview} <span style="color:var(--slate3);font-size:10px;">— ${e.reason}</span></span>
-                </div>
-              `).join("")
-            }
-          </div>
-        </div>
-
+  const shadowHtml = isPro ? `
+    <div class="toggle-row">
+      <div class="toggle-info">
+        <h4>Detection-Only (Shadow) Mode</h4>
+        <p>Monitor without blocking. Threats are logged but all messages pass through. Useful for testing.</p>
       </div>
-    `;
+      <label class="toggle-switch" style="margin-left:16px">
+        <input type="checkbox" id="shadowToggle" ${acc.shadow_mode?"checked":""} onchange="toggleShadow(this.checked)" />
+        <span class="toggle-slider"></span>
+      </label>
+    </div>` : `
+    <div class="toggle-row">
+      <div class="toggle-info">
+        <h4>Detection-Only (Shadow) Mode <span class="pro-lock">— Pro & Business only</span></h4>
+        <p>Upgrade to Pro to enable shadow mode.</p>
+      </div>
+      <label class="toggle-switch" style="margin-left:16px;opacity:.4;pointer-events:none">
+        <input type="checkbox" disabled /><span class="toggle-slider"></span>
+      </label>
+    </div>`;
+
+  const keyLimitNote = acc.max_keys === -1 ? "Unlimited keys" : `${keys.length} / ${acc.max_keys} keys`;
+  const canAddKey = acc.max_keys === -1 || keys.length < acc.max_keys;
+
+  const keysHtml = `
+    <div class="panel-hd"><div class="panel-title">API Keys</div><div class="panel-eyebrow">${keyLimitNote}</div></div>
+    ${keys.map(k=>`
+      <div class="key-row">
+        <span class="key-label-badge">${k.label}</span>
+        <span class="key-masked">${k.api_key}</span>
+        ${isPro ? `<button class="btn-danger" onclick="revokeKey('${k.id}')">Revoke</button>` : ""}
+      </div>`).join("")}
+    ${isPro && canAddKey ? `<button class="btn-gen" onclick="openGenModal()">+ Generate New Key</button>` : ""}
+    ${isPro && !canAddKey ? `<div style="font-size:12px;color:var(--slate3);margin-top:10px;text-align:center">Key limit reached. Upgrade to Business for unlimited keys.</div>` : ""}
+    ${!isPro ? `<div style="font-size:12px;color:var(--slate3);margin-top:10px">Multiple API keys available on Pro & Business plans.</div>` : ""}`;
+
+  function renderLog(list, filter) {
+    if (list.length === 0) return `<div class="log-empty">// no ${filter} events yet</div>`;
+    return list.map(e => {
+      const isShadow = e.status.includes("shadow");
+      const badgeClass = isShadow ? "shadow" : e.status === "PASSED" ? "passed" : "blocked";
+      const keyLabelHtml = isPro && e.key_label ? `<span class="log-chip">Key: <span>${e.key_label}</span></span>` : "";
+      const userHtml = e.user_id ? `<span class="log-chip">User: <span>${e.user_id}</span></span>` : `<span class="log-chip">User: <span style="font-style:italic">not identified</span></span>`;
+      const modelHtml = e.target_model ? `<span class="log-chip">Model: <span>${e.target_model}</span></span>` : `<span class="log-chip">Model: <span style="font-style:italic">not specified</span></span>`;
+      return `
+        <div class="log-entry" onclick="toggleLogDetail('${e.event_id}')">
+          <div class="log-entry-top">
+            <span class="log-time">${new Date(e.timestamp).toLocaleString("en-ZA",{month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"})}</span>
+            <span class="log-badge ${badgeClass}">${e.status}</span>
+            <span class="log-msg">${e.message_preview}</span>
+            <span class="log-lat">${e.latency_ms}ms</span>
+          </div>
+          <div class="log-detail" id="detail-${e.event_id}">
+            <div class="log-meta">
+              <span class="log-chip">ID: <span>${e.event_id}</span></span>
+              ${keyLabelHtml}${userHtml}${modelHtml}
+              <span class="log-chip">Latency: <span>${e.latency_ms}ms</span></span>
+            </div>
+            <div class="log-reason-text">${e.reason}</div>
+            ${e.status === "BLOCKED" ? `<button class="btn-fp ${e.false_positive?"done":""}" id="fp-${e.event_id}" onclick="markFP(event,'${e.event_id}')">${e.false_positive?"✓ Marked as false positive":"⚑ Mark as false positive"}</button>` : ""}
+          </div>
+        </div>`;
+    }).join("");
   }
 
-  // ── Refresh ────────────────────────────────────────────────────────────
-  async function refresh() {
+  const logoData = \`data:image/jpeg;base64,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\`;
+
+  document.getElementById("mainContent").innerHTML = `
+    <div class="fade-in">
+      ${!SESSION.passwordSet ? `
+        <div class="setup-banner">
+          <div><h3>🔐 Set your password</h3><p>Create a password to log in with email next time — no API key needed.</p></div>
+          <button class="btn-setup" onclick="openPwdModal()">Set Password</button>
+        </div>` : ""}
+
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;flex-wrap:wrap;gap:12px">
+        <div>
+          <div style="font-family:var(--display);font-size:20px;font-weight:700;color:var(--slate1)">Security Dashboard</div>
+          <div style="font-size:13px;color:var(--slate3);margin-top:2px">${acc.email} · ${acc.plan.charAt(0).toUpperCase()+acc.plan.slice(1)} Plan</div>
+        </div>
+        <button class="btn-sm" onclick="refresh()">↻ Refresh</button>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card c-amber"><div class="stat-label">Total Requests</div><div class="stat-val amber">${used.toLocaleString()}</div><div class="stat-sub">All time</div></div>
+        <div class="stat-card c-green"><div class="stat-label">Passed</div><div class="stat-val green">${stats.passed.toLocaleString()}</div><div class="stat-sub">Safe messages</div></div>
+        <div class="stat-card c-red"><div class="stat-label">Blocked</div><div class="stat-val red">${stats.blocked.toLocaleString()}</div><div class="stat-sub">Attacks stopped</div></div>
+        <div class="stat-card c-blue"><div class="stat-label">Block Rate</div><div class="stat-val blue">${stats.block_rate}%</div><div class="stat-sub">Of all messages</div></div>
+        <div class="stat-card c-purple"><div class="stat-label">Avg Latency</div><div class="stat-val purple">${stats.avg_latency_ms}ms</div><div class="stat-sub">Per request</div></div>
+      </div>
+
+      <div class="two-col">
+        <div style="display:flex;flex-direction:column;gap:17px">
+          <div class="panel">
+            <div class="panel-hd"><div class="panel-title">Monthly Usage</div><div class="panel-eyebrow">${acc.plan} plan</div></div>
+            <div class="usage-row"><span style="font-size:12px;color:var(--slate2)">${used.toLocaleString()} used</span><span class="usage-pct">${limit>0?pct+"%":"Unlimited"}</span></div>
+            <div class="bar-bg"><div class="bar-fill ${pct>85?"danger":""}" style="width:${limit>0?pct:0}%"></div></div>
+            <div style="font-size:11px;color:var(--slate3)">${limit>0?`${typeof acc.requests_remaining==="number"?acc.requests_remaining.toLocaleString():acc.requests_remaining} remaining`:"Unlimited on Business plan"}</div>
+          </div>
+          <div class="panel">
+            <div class="panel-hd"><div class="panel-title">Attack Breakdown</div></div>
+            ${Object.entries(bk).map(([n,c])=>`
+              <div class="bk-item">
+                <div class="bk-row"><span class="bk-name">${n}</span><span class="bk-count">${c}</span></div>
+                <div class="bk-bar"><div class="bk-fill" style="width:${Math.round((c/maxBk)*100)}%;background:${catColors[n]||"#94a3b8"}"></div></div>
+              </div>`).join("")}
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:17px">
+          <div class="panel">
+            <div class="panel-hd"><div class="panel-title">Account</div></div>
+            <div class="acc-row"><span class="acc-lbl">Email</span><span class="acc-val">${acc.email}</span></div>
+            <div class="acc-row"><span class="acc-lbl">Plan</span><span class="acc-val amber">${acc.plan.charAt(0).toUpperCase()+acc.plan.slice(1)}</span></div>
+            <div class="acc-row"><span class="acc-lbl">Status</span><span class="acc-val green">● Active</span></div>
+            <div class="acc-row"><span class="acc-lbl">Member since</span><span class="acc-val">${new Date(acc.member_since).toLocaleDateString("en-ZA",{year:"numeric",month:"long",day:"numeric"})}</span></div>
+            <div class="acc-row"><span class="acc-lbl">Password</span><span class="acc-val ${SESSION.passwordSet?"green":"red"}">${SESSION.passwordSet?"Set ✓":"Not set"}</span></div>
+            <div style="margin-top:15px;display:flex;gap:10px;flex-wrap:wrap">
+              <a href="index.html#pricing" target="_blank" style="display:inline-block;background:var(--amber);color:#000;font-family:var(--display);font-size:13px;font-weight:700;padding:8px 16px;border-radius:6px;text-decoration:none">Upgrade Plan →</a>
+              <a href="mailto:info@invenova.tech" style="display:inline-flex;align-items:center;font-size:13px;color:var(--slate2);text-decoration:none">Support</a>
+            </div>
+          </div>
+          <div class="panel">${keysHtml}</div>
+          <div class="panel">
+            <div class="panel-hd"><div class="panel-title">Settings</div></div>
+            ${shadowHtml}
+          </div>
+        </div>
+      </div>
+
+      <!-- LOG with tabs -->
+      <div class="log-section">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:10px">
+          <div class="log-tabs">
+            <button class="log-tab ${LOG_FILTER==="blocked"?"active":""}" onclick="setLogFilter('blocked')">
+              🚨 Blocked <span class="count red">${blockedEvts.length}</span>
+            </button>
+            <button class="log-tab ${LOG_FILTER==="passed"?"active":""}" onclick="setLogFilter('passed')">
+              ✓ Passed <span class="count green">${passedEvts.length}</span>
+            </button>
+          </div>
+          <button class="btn-sm" onclick="refresh()">↻ Refresh</button>
+        </div>
+        <div class="log-wrap">
+          <div class="log-scroll" id="logList">
+            ${LOG_FILTER==="blocked" ? renderLog(blockedEvts,"blocked") : renderLog(passedEvts,"passed")}
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer brand -->
+      <div class="footer-brand">
+        <img src="${logoData}" alt="Invenova" />
+        <div class="footer-brand-text">Brought to you by <strong>Invenova</strong><br/><span style="font-size:10px;color:var(--slate3)">Invent · Elevate</span></div>
+      </div>
+    </div>`;
+}
+
+function setLogFilter(filter) {
+  LOG_FILTER = filter;
+  if (!DASH_DATA) return;
+  const evts = DASH_DATA.recent_events;
+  const blockedEvts = evts.filter(e => e.status === "BLOCKED" || e.status.includes("shadow"));
+  const passedEvts  = evts.filter(e => e.status === "PASSED");
+  const isPro = SESSION.plan === "pro" || SESSION.plan === "business";
+
+  function renderLog(list, f) {
+    if (list.length === 0) return `<div class="log-empty">// no ${f} events yet</div>`;
+    return list.map(e => {
+      const isShadow = e.status.includes("shadow");
+      const badgeClass = isShadow ? "shadow" : e.status === "PASSED" ? "passed" : "blocked";
+      const keyLabelHtml = isPro && e.key_label ? `<span class="log-chip">Key: <span>${e.key_label}</span></span>` : "";
+      const userHtml = e.user_id ? `<span class="log-chip">User: <span>${e.user_id}</span></span>` : `<span class="log-chip">User: <span style="font-style:italic">not identified</span></span>`;
+      const modelHtml = e.target_model ? `<span class="log-chip">Model: <span>${e.target_model}</span></span>` : `<span class="log-chip">Model: <span style="font-style:italic">not specified</span></span>`;
+      return `
+        <div class="log-entry" onclick="toggleLogDetail('${e.event_id}')">
+          <div class="log-entry-top">
+            <span class="log-time">${new Date(e.timestamp).toLocaleString("en-ZA",{month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"})}</span>
+            <span class="log-badge ${badgeClass}">${e.status}</span>
+            <span class="log-msg">${e.message_preview}</span>
+            <span class="log-lat">${e.latency_ms}ms</span>
+          </div>
+          <div class="log-detail" id="detail-${e.event_id}">
+            <div class="log-meta">
+              <span class="log-chip">ID: <span>${e.event_id}</span></span>
+              ${keyLabelHtml}${userHtml}${modelHtml}
+              <span class="log-chip">Latency: <span>${e.latency_ms}ms</span></span>
+            </div>
+            <div class="log-reason-text">${e.reason}</div>
+            ${e.status === "BLOCKED" ? `<button class="btn-fp ${e.false_positive?"done":""}" id="fp-${e.event_id}" onclick="markFP(event,'${e.event_id}')">${e.false_positive?"✓ Marked as false positive":"⚑ Mark as false positive"}</button>` : ""}
+          </div>
+        </div>`;
+    }).join("");
+  }
+
+  document.querySelectorAll(".log-tab").forEach(t=>t.classList.remove("active"));
+  event.target.closest(".log-tab").classList.add("active");
+  document.getElementById("logList").innerHTML =
+    filter === "blocked" ? renderLog(blockedEvts,"blocked") : renderLog(passedEvts,"passed");
+}
+
+function toggleLogDetail(id) {
+  const el = document.getElementById(`detail-${id}`);
+  if (el) el.classList.toggle("open");
+}
+
+async function markFP(evt, eventId) {
+  evt.stopPropagation();
+  const btn = document.getElementById(`fp-${eventId}`);
+  btn.textContent = "Sending…";
+  try {
+    await fetch(`${API}/my-log/false-positive/${eventId}`, {
+      method:"POST", headers:{"X-API-Key": SESSION.apiKey}
+    });
+    btn.textContent = "✓ Marked as false positive";
+    btn.classList.add("done");
+  } catch(e) { btn.textContent = "⚑ Mark as false positive"; }
+}
+
+async function toggleShadow(enabled) {
+  try {
+    const res = await fetch(`${API}/my-settings/shadow-mode?enabled=${enabled}`, {
+      method:"PATCH", headers:{"X-API-Key": SESSION.apiKey}
+    });
+    const data = await res.json();
+    if (data.success) document.getElementById("shadowBadge").style.display = enabled ? "inline" : "none";
+  } catch(e) { console.error("Shadow toggle failed", e); }
+}
+
+function openGenModal() {
+  document.getElementById("genKeyLabel").value = "";
+  document.getElementById("genKeyResult").style.display = "none";
+  document.getElementById("genKeyMsg").textContent = "";
+  document.getElementById("btnGenKey").style.display = "inline-block";
+  document.getElementById("btnGenKey").disabled = false;
+  document.getElementById("btnGenKey").textContent = "Generate Key";
+  document.getElementById("genKeyModal").classList.add("open");
+}
+
+function closeGenModal() {
+  document.getElementById("genKeyModal").classList.remove("open");
+  refresh();
+}
+
+async function generateKey() {
+  const label = document.getElementById("genKeyLabel").value.trim() || "New Key";
+  const btn = document.getElementById("btnGenKey");
+  const msg = document.getElementById("genKeyMsg");
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>Generating…';
+  try {
+    const res = await fetch(`${API}/my-keys/generate`, {
+      method:"POST", headers:{"X-API-Key": SESSION.apiKey, "Content-Type":"application/json"},
+      body: JSON.stringify({label})
+    });
+    const data = await res.json();
+    if (!res.ok) { msg.textContent = data.detail; btn.disabled=false; btn.textContent="Generate Key"; return; }
+    document.getElementById("genKeyValue").textContent = data.api_key;
+    document.getElementById("genKeyResult").style.display = "block";
+    btn.style.display = "none";
+  } catch(e) { msg.textContent = "Error generating key."; btn.disabled=false; btn.textContent="Generate Key"; }
+}
+
+function copyNewKey() {
+  navigator.clipboard.writeText(document.getElementById("genKeyValue").textContent);
+  event.target.textContent = "Copied!";
+  setTimeout(()=>event.target.textContent="Copy Key", 1500);
+}
+
+async function revokeKey(keyId) {
+  if (!confirm("Revoke this key? It will stop working immediately.")) return;
+  try {
+    const res = await fetch(`${API}/my-keys/${keyId}`, {
+      method:"DELETE", headers:{"X-API-Key": SESSION.apiKey}
+    });
+    if (res.ok) refresh();
+  } catch(e) { alert("Error revoking key."); }
+}
+
+function openPwdModal() {
+  document.getElementById("newPwd1").value = "";
+  document.getElementById("newPwd2").value = "";
+  document.getElementById("setPwdMsg").textContent = "";
+  document.getElementById("setPwdModal").classList.add("open");
+}
+
+function closePwdModal() {
+  document.getElementById("setPwdModal").classList.remove("open");
+}
+
+async function doSetPassword() {
+  const p1 = document.getElementById("newPwd1").value;
+  const p2 = document.getElementById("newPwd2").value;
+  const msg = document.getElementById("setPwdMsg");
+  if (p1 !== p2) { msg.textContent = "Passwords don't match."; return; }
+  if (p1.length < 8) { msg.textContent = "Minimum 8 characters."; return; }
+  try {
+    const res = await fetch(`${API}/auth/set-password`, {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({email: SESSION.email, api_key: SESSION.apiKey, password: p1})
+    });
+    const data = await res.json();
+    if (!res.ok) { msg.textContent = data.detail; return; }
+    SESSION.passwordSet = true;
+    closePwdModal();
+    refresh();
+  } catch(e) { msg.textContent = "Error. Please try again."; }
+}
+
+function openManual() { document.getElementById("manualModal").classList.add("open"); }
+function closeManual() { document.getElementById("manualModal").classList.remove("open"); }
+
+async function refresh() {
+  try {
+    const res = await fetch(`${API}/my-log?email=${encodeURIComponent(SESSION.email)}&limit=50`, {
+      headers:{"X-API-Key": SESSION.apiKey}
+    });
+    if (!res.ok) return;
+    const data = await res.json();
+    DASH_DATA = data;
+    renderDashboard(data);
+  } catch(e) { console.error("Refresh failed", e); }
+}
+
+function logout() {
+  SESSION = {email:"",apiKey:"",plan:"starter",passwordSet:false};
+  DASH_DATA = null;
+  document.getElementById("dashboard").style.display = "none";
+  document.getElementById("loginScreen").style.display = "flex";
+  ["pwdEmail","pwdPassword","keyEmail","keyVal"].forEach(id=>document.getElementById(id).value="");
+}
+
+document.addEventListener("keydown", e => {
+  if (e.key === "Enter") {
+    if (document.getElementById("loginScreen").style.display !== "none") {
+      document.getElementById("tabPwd").classList.contains("active") ? loginPwd() : loginKey();
+    }
+    if (document.getElementById("forgotScreen").style.display !== "none") sendReset();
+  }
+});
+
+  async function pushCrispContext() {
+    if (!window.$crisp || !SESSION.email) return;
     try {
-      const res = await fetch(`${API}/my-log?limit=50`, {
-        headers: { "X-API-Key": currentKey }
+      const res = await fetch(`${API}/my-support-context?email=${encodeURIComponent(SESSION.email)}`, {
+        headers:{"X-API-Key": SESSION.apiKey}
+      });
+      if (!res.ok) return;
+      const ctx = await res.json();
+      $crisp.push(["set","user:email",[ctx.email]]);
+      $crisp.push(["set","session:data",[[
+        ["plan", ctx.plan],
+        ["organization_id", ctx.organization_id || "N/A"],
+        ["member_since", ctx.member_since],
+        ["monthly_used", ctx.monthly_used],
+        ["total_requests", ctx.total_requests]
+      ]]]);
+    } catch(e) { console.log("Crisp context failed", e); }
+  }
+
+  async function toggleOverage(enabled) {
+    try {
+      await fetch(`${API}/my-settings/overage`, {
+        method:"PATCH", headers:{"X-API-Key": SESSION.apiKey, "Content-Type":"application/json"},
+        body: JSON.stringify({enabled})
+      });
+    } catch(e) { console.error("Overage toggle failed", e); }
+  }
+
+  async function doCancel() {
+    const msg = document.getElementById("cancelMsg");
+    try {
+      const res = await fetch(`${API}/my-account/cancel`, {
+        method:"POST", headers:{"X-API-Key": SESSION.apiKey}
       });
       const data = await res.json();
-      dashData = data;
-      showDashboard(data);
-    } catch (e) {
-      console.error("Refresh failed", e);
-    }
+      if (res.ok) {
+        msg.style.color = "var(--green)";
+        msg.textContent = "✓ " + data.message;
+        setTimeout(() => {
+          document.getElementById("cancelModal").classList.remove("open");
+          logout();
+        }, 3000);
+      } else {
+        msg.textContent = data.detail || "Error cancelling.";
+      }
+    } catch(e) { msg.textContent = "Connection error. Please try again."; }
   }
 
-  // ── Copy helpers ───────────────────────────────────────────────────────
-  function copyKey() {
-    navigator.clipboard.writeText(currentKey);
-    event.target.textContent = "Copied!";
-    setTimeout(() => event.target.textContent = "Copy", 1500);
-  }
-
-  function copyEndpoint() {
-    navigator.clipboard.writeText(`${API}/analyze`);
-    event.target.textContent = "Copied!";
-    setTimeout(() => event.target.textContent = "Copy URL", 1500);
-  }
 </script>
 
+<!-- CANCEL MODAL -->
+<div class="modal-overlay" id="cancelModal">
+  <div class="modal">
+    <div class="modal-title" style="color:var(--red)">⚠️ Cancel Subscription</div>
+    <p class="modal-sub">Are you sure? Your API key stays active until the end of your current billing period. You can reactivate anytime.</p>
+    <div id="cancelMsg" class="auth-error"></div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="document.getElementById('cancelModal').classList.remove('open')">Keep my plan</button>
+      <button class="btn-primary" style="flex:1;background:var(--red)" onclick="doCancel()">Yes, cancel</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
