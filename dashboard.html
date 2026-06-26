@@ -465,23 +465,25 @@ function switchTab(t) {
 
 
   // Persist session across page interactions
+  function LS(k){return localStorage.getItem(k)||sessionStorage.getItem(k);}
+  function LS_set(k,v){var s=String(v||'');localStorage.setItem(k,s);sessionStorage.setItem(k,s);}
+  function clearStoredAuth(){['pf_email','pf_key','pf_plan','pf_pwdSet'].forEach(function(k){localStorage.removeItem(k);sessionStorage.removeItem(k);});}
   function saveSession() {
     if (SESSION.email) {
-      sessionStorage.setItem('pf_email', SESSION.email);
-      sessionStorage.setItem('pf_key', SESSION.apiKey);
-      sessionStorage.setItem('pf_plan', SESSION.plan);
-      sessionStorage.setItem('pf_pwdSet', SESSION.passwordSet);
-    }
+      LS_set('pf_email', SESSION.email);
+      LS_set('pf_key', SESSION.apiKey);
+      LS_set('pf_plan', SESSION.plan);
+      LS_set('pf_pwdSet', SESSION.passwordSet ? 'true' : 'false');
+    } else { clearStoredAuth(); }
   }
-
   function restoreSession() {
-    const email = sessionStorage.getItem('pf_email');
-    const key   = sessionStorage.getItem('pf_key');
+    var email = LS('pf_email');
+    var key   = LS('pf_key');
     if (email && key) {
       SESSION.email       = email;
       SESSION.apiKey      = key;
-      SESSION.plan        = sessionStorage.getItem('pf_plan') || 'starter';
-      SESSION.passwordSet = sessionStorage.getItem('pf_pwdSet') === 'true';
+      SESSION.plan        = LS('pf_plan') || 'starter';
+      SESSION.passwordSet = LS('pf_pwdSet') === 'true';
       return true;
     }
     return false;
@@ -504,7 +506,7 @@ function switchTab(t) {
     if (!res.ok) { err.textContent = data.detail || "Invalid credentials."; return; }
     SESSION.email = email;
     SESSION.passwordSet = true;
-    SESSION.apiKey = data.api_key || sessionStorage.getItem('pf_key') || '';
+    SESSION.apiKey = data.api_key || LS('pf_key') || '';
     if (!SESSION.apiKey) {
       err.textContent = "No API key found. Please use the First Time Login tab with your API key first.";
       btn.disabled = false; btn.textContent = "Sign In";
@@ -606,14 +608,14 @@ async function loadDashboard(email, apiKey) {
     if (!res.ok) {
       // Try to refresh with stored credentials
       const storedEmail = sessionStorage.getItem('pf_email');
-      const storedKey   = sessionStorage.getItem('pf_key');
+      const storedKey   = LS('pf_key');
       if (storedEmail && storedKey && (storedEmail !== email || storedKey !== keyToUse)) {
         SESSION.email  = storedEmail;
         SESSION.apiKey = storedKey;
         await loadDashboard(storedEmail, storedKey);
         return;
       }
-      sessionStorage.clear();
+      clearStoredAuth();
       document.getElementById("loginScreen").style.display = "flex";
       document.getElementById("dashboard").style.display = "none";
       return;
@@ -984,7 +986,7 @@ async function refresh() {
 function logout() {
   SESSION = {email:"",apiKey:"",plan:"starter",passwordSet:false};
   DASH_DATA = null;
-  sessionStorage.clear();
+  clearStoredAuth();
   document.getElementById("dashboard").style.display = "none";
   document.getElementById("loginScreen").style.display = "flex";
   ["pwdEmail","pwdPassword","keyEmail","keyVal"].forEach(id=>document.getElementById(id).value="");
