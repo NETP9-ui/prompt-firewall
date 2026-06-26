@@ -750,11 +750,39 @@ function renderDashboard(data) {
 
       <div class="two-col">
         <div style="display:flex;flex-direction:column;gap:17px">
-          <div class="panel">
-            <div class="panel-hd"><div class="panel-title">Monthly Usage</div><div class="panel-eyebrow">${acc.plan} plan</div></div>
-            <div class="usage-row"><span style="font-size:12px;color:var(--slate2)">${used.toLocaleString()} used</span><span class="usage-pct">${limit>0?pct+"%":"Unlimited"}</span></div>
-            <div class="bar-bg"><div class="bar-fill ${pct>85?"danger":""}" style="width:${limit>0?pct:0}%"></div></div>
-            <div style="font-size:11px;color:var(--slate3)">${limit>0?`${typeof acc.requests_remaining==="number"?acc.requests_remaining.toLocaleString():acc.requests_remaining} remaining`:"Unlimited on Business plan"}</div>
+          <div class="billing-widget">
+            <div class="panel-hd" style="margin-bottom:10px">
+              <div class="panel-title">Monthly Usage</div>
+              <div class="panel-eyebrow">${acc.plan} plan</div>
+            </div>
+            <div class="usage-row">
+              <span style="font-size:12px;color:var(--slate2)">${used.toLocaleString()} used</span>
+              <span class="usage-pct" style="color:${pct>=100?'var(--red)':pct>=80?'#f97316':'var(--amber)'}">${limit>0?pct+'%':'Unlimited'}</span>
+            </div>
+            <div class="bar-bg">
+              <div class="bar-fill" style="width:${limit>0?Math.min(pct,100):0}%;background:${pct>=100?'var(--red)':pct>=80?'#f97316':'var(--green)'}"></div>
+            </div>
+            <div style="font-size:11px;color:var(--slate3);margin-bottom:10px">${limit>0?`${typeof acc.requests_remaining==="number"?acc.requests_remaining.toLocaleString():acc.requests_remaining} remaining`:"Unlimited on Business plan"}</div>
+            <div class="overage-meter">
+              ${acc.overage_cost > 0
+                ? `<span class="overage-active">Current Overage: $${acc.overage_cost.toFixed(2)} (${acc.overage_qty.toLocaleString()} extra requests)</span>`
+                : `<span class="overage-zero">Overage Charges: $0.00</span>`}
+            </div>
+            ${acc.plan !== 'business' ? `
+            <div class="toggle-row" style="padding:8px 0;border-bottom:none">
+              <div class="toggle-info">
+                <h4 style="font-size:12px">Enable Overages
+                  <span class="tooltip-wrap" style="margin-left:4px;cursor:help">i
+                    <span class="tip">When enabled, your app stays live past your limit at $0.50 per 1,000 extra requests. When disabled, your app pauses at the limit.</span>
+                  </span>
+                </h4>
+              </div>
+              <label class="toggle-switch" style="margin-left:12px">
+                <input type="checkbox" id="overageToggle" ${acc.overage_enabled?"checked":""} onchange="toggleOverage(this.checked)" />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>` : ''}
+            ${acc.billing_reset_date ? `<div style="font-size:11px;color:var(--slate3);margin-top:8px">Resets: ${new Date(acc.billing_reset_date).toLocaleDateString("en-ZA",{month:"long",day:"numeric"})}</div>` : ''}
           </div>
           <div class="panel">
             <div class="panel-hd"><div class="panel-title">Attack Breakdown</div></div>
