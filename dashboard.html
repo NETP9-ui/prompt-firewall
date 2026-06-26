@@ -219,7 +219,7 @@
     <div class="auth-title">Prompt Firewall</div>
     <p class="auth-sub">Sign in to your security dashboard.</p>
     <div class="tab-row">
-      <button class="tab-btn active" id="tabPwd" onclick="switchTab('pwd')">Email & Password</button>
+      <button class="tab-btn active" id="tabPwd" onclick="switchTab('pwd')">Email &amp; Password</button>
       <button class="tab-btn" id="tabKey" onclick="switchTab('key')">First Time Login</button>
     </div>
     <div id="formPwd">
@@ -452,11 +452,11 @@ if (resetToken) {
   document.getElementById("resetScreen").style.display = "flex";
 }
 
-function switchTab(tab) {
-  document.getElementById("tabPwd").classList.toggle("active", tab==="pwd");
-  document.getElementById("tabKey").classList.toggle("active", tab==="key");
-  document.getElementById("formPwd").style.display = tab==="pwd" ? "block" : "none";
-  document.getElementById("formKey").style.display = tab==="key" ? "block" : "none";
+function switchTab(t) {
+  document.getElementById("tabPwd").classList.toggle("active", t==="pwd");
+  document.getElementById("tabKey").classList.toggle("active", t==="key");
+  document.getElementById("formPwd").style.display = t==="pwd" ? "block" : "none";
+  document.getElementById("formKey").style.display = t==="key" ? "block" : "none";
   document.getElementById("loginError").textContent = "";
 }
 
