@@ -642,6 +642,15 @@ async def paddle_webhook(request: Request):
     return {"status":"ok"}
 
 # ── HEALTH ─────────────────────────────────────────────────────────────────
+@app.get("/admin/customer-keys", tags=["Admin"])
+async def get_customer_keys(email: str, _key: str = Security(require_admin)):
+    """Admin: get API keys for a customer by email."""
+    customer = db_one("SELECT * FROM customers WHERE email=%s", (email,))
+    if not customer:
+        raise HTTPException(status_code=404, detail="Customer not found.")
+    keys = db_all("SELECT id,api_key,label,status,created_at FROM api_keys WHERE customer_id=%s", (customer["id"],))
+    return {"email": email, "keys": [dict(k) for k in keys]}
+
 @app.get("/health", tags=["Health"])
 def health():
     return {"status":"online","version":"5.1.0"}
