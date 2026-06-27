@@ -70,6 +70,18 @@ async def monthly_reset_checker():
 @app.on_event("startup")
 async def startup_event():
     asyncio.create_task(monthly_reset_checker())
+    asyncio.create_task(keep_alive())
+
+async def keep_alive():
+    """Ping self every 10 minutes to prevent Railway cold starts."""
+    await asyncio.sleep(60)
+    while True:
+        try:
+            async with httpx.AsyncClient() as client:
+                await client.get("https://prompt-firewall-production.up.railway.app/health", timeout=10)
+        except Exception:
+            pass
+        await asyncio.sleep(600)
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 app.add_middleware(
     CORSMiddleware,
