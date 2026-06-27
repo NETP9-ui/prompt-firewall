@@ -258,20 +258,61 @@ async def send_email(recipient, subject, html):
             json={"from": FROM_EMAIL, "to": recipient, "subject": subject, "html": html})
 
 async def send_api_key_email(email, api_key, plan, label="Default"):
-    html = f"""<div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:32px;background:#080c14;color:#f1f5f9;border-radius:10px;">
-      <h1 style="color:#f59e0b">Welcome to Prompt Firewall</h1>
-      <p style="color:#94a3b8">Your <strong style="color:#f1f5f9">{plan.title()}</strong> plan is active.</p>
-      <div style="background:#0d1220;border:1px solid #1e293b;border-radius:8px;padding:20px;margin:24px 0">
-        <p style="color:#475569;font-size:12px;margin-bottom:4px;font-family:monospace">KEY LABEL: {label}</p>
-        <p style="color:#475569;font-size:12px;margin-bottom:8px;font-family:monospace">YOUR API KEY</p>
-        <p style="font-family:monospace;font-size:16px;color:#f59e0b;word-break:break-all">{api_key}</p>
+    html = f"""<div style="font-family:sans-serif;max-width:580px;margin:0 auto;padding:32px;background:#080c14;color:#f1f5f9;border-radius:10px;">
+      
+      <h1 style="color:#f59e0b;font-size:24px;margin-bottom:6px">Welcome to Prompt Firewall</h1>
+      <p style="color:#94a3b8;margin-bottom:24px">Your <strong style="color:#f1f5f9">{plan.title()}</strong> plan is now active. Your AI chatbot is one step away from being protected.</p>
+
+      <!-- API Key -->
+      <div style="background:#0d1220;border:1px solid #f59e0b;border-radius:8px;padding:20px;margin-bottom:24px">
+        <p style="color:#475569;font-size:11px;margin-bottom:4px;font-family:monospace;letter-spacing:.08em">KEY LABEL</p>
+        <p style="font-family:monospace;font-size:13px;color:#94a3b8;margin-bottom:14px">{label}</p>
+        <p style="color:#475569;font-size:11px;margin-bottom:8px;font-family:monospace;letter-spacing:.08em">YOUR API KEY — KEEP THIS SAFE, DO NOT SHARE</p>
+        <p style="font-family:monospace;font-size:18px;color:#f59e0b;word-break:break-all;margin:0;letter-spacing:.02em">{api_key}</p>
       </div>
-      <pre style="background:#0a0f1a;border:1px solid #1e293b;border-radius:6px;padding:14px;font-size:12px;color:#86efac">headers={{"X-API-Key": "{api_key}"}}</pre>
-      <pre style="background:#0a0f1a;border:1px solid #1e293b;border-radius:6px;padding:14px;font-size:12px;color:#60a5fa;margin-top:8px">https://prompt-firewall-production.up.railway.app/analyze</pre>
-      <a href="{BASE_URL}/dashboard.html" style="display:inline-block;margin-top:16px;background:#f59e0b;color:#000;font-weight:700;padding:10px 20px;border-radius:6px;text-decoration:none">Open Dashboard</a>
-      <p style="color:#475569;font-size:13px;margin-top:28px">Questions? <a href="mailto:info@invenova.tech" style="color:#f59e0b">info@invenova.tech</a></p>
+
+      <!-- What it protects -->
+      <div style="background:#0d1220;border:1px solid #1e293b;border-radius:8px;padding:16px;margin-bottom:24px">
+        <p style="color:#475569;font-size:11px;margin-bottom:10px;font-family:monospace;letter-spacing:.08em">YOUR FIREWALL PROTECTS AGAINST</p>
+        <table style="width:100%;border-collapse:collapse">
+          <tr>
+            <td style="font-size:12px;color:#94a3b8;padding:4px 0">Prompt Injection</td>
+            <td style="font-size:12px;color:#94a3b8;padding:4px 0">SQL Injection</td>
+          </tr>
+          <tr>
+            <td style="font-size:12px;color:#94a3b8;padding:4px 0">XSS Attacks</td>
+            <td style="font-size:12px;color:#94a3b8;padding:4px 0">Command Injection</td>
+          </tr>
+          <tr>
+            <td style="font-size:12px;color:#94a3b8;padding:4px 0">Log4Shell / XXE</td>
+            <td style="font-size:12px;color:#94a3b8;padding:4px 0">Obfuscation & Encoding</td>
+          </tr>
+          <tr>
+            <td style="font-size:12px;color:#94a3b8;padding:4px 0">PII Leaks</td>
+            <td style="font-size:12px;color:#94a3b8;padding:4px 0">70+ attack patterns total</td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- Next steps -->
+      <h2 style="color:#f1f5f9;font-size:16px;margin-bottom:14px">Get Started in 3 Steps</h2>
+
+      <p style="color:#94a3b8;font-size:13px;margin-bottom:4px"><strong style="color:#f1f5f9">Step 1 — Open your dashboard</strong></p>
+      <p style="color:#94a3b8;font-size:13px;margin-bottom:14px">Log in with your email and API key above. Set a password so you never need the key to log in again.</p>
+      <a href="{BASE_URL}/dashboard.html" style="display:inline-block;margin-bottom:20px;background:#f59e0b;color:#000;font-weight:700;padding:12px 24px;border-radius:6px;text-decoration:none;font-size:14px">Open Dashboard →</a>
+
+      <p style="color:#94a3b8;font-size:13px;margin-bottom:4px"><strong style="color:#f1f5f9">Step 2 — Test it in the Sandbox</strong></p>
+      <p style="color:#94a3b8;font-size:13px;margin-bottom:14px">Inside your dashboard, the Sandbox lets you type any message and instantly see if it would be BLOCKED or PASSED — no code needed. Try typing "ignore previous instructions" to see it in action.</p>
+
+      <p style="color:#94a3b8;font-size:13px;margin-bottom:4px"><strong style="color:#f1f5f9">Step 3 — Add it to your code</strong></p>
+      <p style="color:#94a3b8;font-size:13px;margin-bottom:20px">Open the <strong style="color:#f1f5f9">User Manual</strong> inside your dashboard for step-by-step integration guides in Python, JavaScript, C#, and more.</p>
+
+      <p style="color:#475569;font-size:12px;border-top:1px solid #1e293b;padding-top:16px;margin-top:4px">
+        Questions? Reply to this email or contact <a href="mailto:info@invenova.tech" style="color:#f59e0b">info@invenova.tech</a><br/>
+        Brought to you by <strong style="color:#94a3b8">Invenova</strong> · Invent · Elevate
+      </p>
     </div>"""
-    await send_email(email, "Your Prompt Firewall API Key", html)
+    await send_email(email, "Your Prompt Firewall API Key is Ready", html)
 
 async def send_reset_email(email, token):
     url = f"{BASE_URL}/dashboard.html?reset={token}"
