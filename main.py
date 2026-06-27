@@ -550,11 +550,12 @@ async def my_log(request: Request, email: str = Query(...), limit: int = 50, key
     }
 
 @app.post("/my-log/false-positive/{event_id}", tags=["Customer"])
-async def mark_false_positive(event_id: str, key: str = Security(api_key_header)):
+async def mark_false_positive(event_id: str, unmark: bool = False, key: str = Security(api_key_header)):
     customer = get_customer_by_key(key)
     if not customer: raise HTTPException(status_code=403, detail="Invalid API key.")
-    db_exec("UPDATE events SET false_positive=1 WHERE event_id=%s AND customer_id=%s",(event_id,customer["id"]))
-    return {"success":True}
+    value = 0 if unmark else 1
+    db_exec("UPDATE events SET false_positive=%s WHERE event_id=%s AND customer_id=%s",(value, event_id, customer["id"]))
+    return {"success": True, "false_positive": not unmark}
 
 @app.patch("/my-settings/shadow-mode", tags=["Customer"])
 async def toggle_shadow(enabled: bool, key: str = Security(api_key_header)):
