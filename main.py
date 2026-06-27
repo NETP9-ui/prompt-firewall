@@ -261,13 +261,16 @@ def analyze_prompt(message, max_length=MAX_LENGTH):
     return "PASSED","No threats detected. Safe to forward to AI."
 
 # ── Email ──────────────────────────────────────────────────────────────────
-async def send_email(recipient, subject, html):
+async def send_email(recipient, subject, html, text=None):
     if not RESEND_API_KEY:
         print(f"[EMAIL SKIP] {recipient}: {subject}"); return
+    payload = {"from": FROM_EMAIL, "to": recipient, "subject": subject, "html": html}
+    if text:
+        payload["text"] = text
     async with httpx.AsyncClient() as client:
         await client.post("https://api.resend.com/emails",
             headers={"Authorization": f"Bearer {RESEND_API_KEY}"},
-            json={"from": FROM_EMAIL, "to": recipient, "subject": subject, "html": html})
+            json=payload)
 
 async def send_api_key_email(email, api_key, plan, label="Default"):
     html = f"""<div style="font-family:sans-serif;max-width:580px;margin:0 auto;padding:32px;background:#080c14;color:#f1f5f9;border-radius:10px;">
@@ -334,7 +337,7 @@ async def send_reset_email(email, token):
       <a href="{url}" style="display:inline-block;background:#f59e0b;color:#000;font-weight:700;padding:12px 24px;border-radius:6px;text-decoration:none">Reset Password</a>
       <p style="color:#475569;font-size:13px;margin-top:28px">Questions? <a href="mailto:info@invenova.tech" style="color:#f59e0b">info@invenova.tech</a></p>
     </div>"""
-    await send_email(email, "Reset your Prompt Firewall password", html)
+    await send_email(email, "Reset your Prompt Firewall password", html, url)
 
 async def send_usage_alert(email, plan, used, limit, pct, overage_enabled):
     if pct >= 100:
